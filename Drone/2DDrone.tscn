@@ -1,0 +1,20 @@
+[gd_scene load_steps=4 format=3 uid="uid://bf0cge0the4qt"]
+
+[ext_resource type="Script" path="res://Drone/2DDrone.gd" id="1_ewokp"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_m8mnf"]
+radius = 100.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_2naln"]
+radius = 16.0
+
+[node name="2DDrone" type="CharacterBody2D"]
+script = ExtResource("1_ewokp")
+
+[node name="Vision" type="Area2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Vision"]
+shape = SubResource("CircleShape2D_m8mnf")
+
+[node name="Collision" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_2naln")
