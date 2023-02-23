@@ -1,0 +1,16 @@
+[gd_scene load_steps=4 format=3 uid="uid://cgv784s10mrpy"]
+
+[ext_resource type="PackedScene" uid="uid://ce2unkmcn2rv7" path="res://Playgound/Drone2D.tscn" id="1_cqxkh"]
+[ext_resource type="Script" path="res://Playgound/Base.gd" id="2_sh15p"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_gw2q4"]
+radius = 210.0
+
+[node name="Base" instance=ExtResource("1_cqxkh")]
+script = ExtResource("2_sh15p")
+
+[node name="CollisionShape2D" parent="Vision" index="0"]
+shape = SubResource("CircleShape2D_gw2q4")
+
+[node name="LabelId" parent="." index="1"]
+visible = false

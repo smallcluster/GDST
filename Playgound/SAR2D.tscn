@@ -1,0 +1,54 @@
+[gd_scene load_steps=2 format=3 uid="uid://ofy1e5co67lh"]
+
+[ext_resource type="Script" path="res://Playgound/DroneManager.gd" id="1_8iqyn"]
+
+[node name="SAR2D" type="Node2D"]
+script = ExtResource("1_8iqyn")
+
+[node name="Camera2D" type="Camera2D" parent="."]
+
+[node name="Drones" type="Node2D" parent="."]
+
+[node name="Base" type="Node2D" parent="."]
+
+[node name="BGLayer" type="CanvasLayer" parent="."]
+layer = -1
+
+[node name="ColorRect" type="ColorRect" parent="BGLayer"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.129412, 0.129412, 0.129412, 1)
+
+[node name="ControlLayer" type="CanvasLayer" parent="."]
+
+[node name="Control" type="Control" parent="ControlLayer"]
+layout_mode = 3
+anchors_preset = 0
+
+[node name="PanelContainer" type="PanelContainer" parent="ControlLayer/Control"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="ControlLayer/Control/PanelContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="ControlLayer/Control/PanelContainer/VBoxContainer"]
+layout_mode = 2
+text = "Rendering"
+uppercase = true
+
+[node name="SwitchId" type="CheckButton" parent="ControlLayer/Control/PanelContainer/VBoxContainer"]
+layout_mode = 2
+text = "Ids"
+
+[node name="SwitchDroneVision" type="CheckButton" parent="ControlLayer/Control/PanelContainer/VBoxContainer"]
+layout_mode = 2
+text = "Drone vision"
+
+[node name="SwitchBaseVision" type="CheckButton" parent="ControlLayer/Control/PanelContainer/VBoxContainer"]
+layout_mode = 2
+text = "Base vision"
