@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://Playgound/Drone2D.gd" id="1_bfhxw"]
 
-[sub_resource type="CircleShape2D" id="CircleShape2D_fuf2a"]
+[sub_resource type="CircleShape2D" id="CircleShape2D_q120o"]
 radius = 210.0
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_inbtf"]
@@ -14,7 +14,7 @@ script = ExtResource("1_bfhxw")
 monitorable = false
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Vision"]
-shape = SubResource("CircleShape2D_fuf2a")
+shape = SubResource("CircleShape2D_q120o")
 
 [node name="LabelId" type="Label" parent="."]
 anchors_preset = 8

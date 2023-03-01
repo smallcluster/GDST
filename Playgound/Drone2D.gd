@@ -45,22 +45,42 @@ func _draw():
 		draw_circle(Vector2.ZERO, D/2, Color(0.5,0.5,0.5, 0.25))
 
 # Conditionnal link
-#	if not active:
-#		return
-#
-#	var drones = vision.get_overlapping_bodies()
+	if not active:
+		return
+
+	var drones = vision.get_overlapping_bodies()
+	drones = drones.filter(func(x): return x.active)
+	
+	
+# l'odre décroissant local conserve la connection
+	drones = drones.filter(func(x): return x.id < id)
+
+	if drones.is_empty():
+		return
+
+	# max id only
+	var max = drones[0]
+	for d in drones:
+		if d.id > max.id:
+			max = d
+	draw_line(Vector2.ZERO, max.position-position, Color.CYAN, 2)
+	
+# ⚠️ prendre le plus petit rend la topologie du graphe instable mais c'est une solution
+
+# ⚠️ l'odre croissant local ne conserve pas la connection
+#	drones = vision.get_overlapping_bodies()
 #	drones = drones.filter(func(x): return x.active)
-#	drones = drones.filter(func(x): return x.id < id)
+#	drones = drones.filter(func(x): return x.id != id)
 #
 #	if drones.is_empty():
 #		return
 #
-#	var min = drones[0]
+#	# max id only
+#	var m = drones[0]
 #	for d in drones:
-#		if d.id < min.id:
-#			min = d
-#
-#	draw_line(Vector2.ZERO, min.position-position, Color.CYAN, 2)
+#		if d.id > m.id:
+#			m = d
+#	draw_line(Vector2.ZERO, m.position-position, Color.MAGENTA, 4)
 	
 
 

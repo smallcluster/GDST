@@ -68,16 +68,17 @@ func _draw():
 	
 	# draw links from drones to drones
 	var drones = $Drones.get_children()
-	for d1 in drones:
-		for d2 in drones:
-			if d1 == d2 or not d1.active or not d2.active:
-				continue
-			if d1.position.distance_squared_to(d2.position) <= d1.Dmax*d1.Dmax:
-				draw_line(d1.position, d2.position, Color.CYAN, 2, true)
+#	for d1 in drones:
+#		for d2 in drones:
+#			if d1 == d2 or not d1.active or not d2.active :
+#				continue
+#			if d1.position.distance_squared_to(d2.position) <= d1.Dmax*d1.Dmax:
+#				draw_line(d1.position, d2.position, Color.CYAN, 2, true)
 	# draw links from drones to base			
 	for d in drones:
 		if d.active and d.position.distance_squared_to(base.position) <= d.Dmax*d.Dmax:
 			draw_line(base.position, d.position, Color.CYAN, 2, true)
+	
 	
 # Prevent the team from moving while in the control panel		
 func _input(event):
