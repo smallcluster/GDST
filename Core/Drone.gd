@@ -8,7 +8,10 @@ var _neighbours : Array[Drone]
 func compute_next_state(p : Protocol) -> void:
 	_neighbours = get_neighbours()
 	var obs : Array[ObservableState] = p.look(_neighbours)
-	_next_state = p.compute(_state, _messages, obs)
+	var msg = _messages.duplicate()
+	_messages.clear()
+	_next_state = p.compute(_state, msg, obs)
+	
 	
 func broadcast_message(msg : String) -> void:
 	for d in _neighbours:
@@ -16,10 +19,7 @@ func broadcast_message(msg : String) -> void:
 		
 func receive_message(msg : String) -> void:
 	_messages.append(msg)
-	
-func get_messages() -> Array[String]:
-	return _messages
-	
+
 # Override with custom logic
 func update_state() -> void:
 	_state = _next_state
