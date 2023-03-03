@@ -1,0 +1,24 @@
+[gd_scene load_steps=3 format=3 uid="uid://omc1jn7fakxh"]
+
+[ext_resource type="Script" path="res://Sim/Scripts/CamControls.gd" id="1_d6xna"]
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_jpx7t"]
+
+[node name="3DPlayground" type="Node3D"]
+
+[node name="GUI" type="CanvasLayer" parent="."]
+
+[node name="Control" type="Control" parent="GUI"]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.34202, 0.939693, 0, -0.939693, 0.34202, 0.32843, 3.17868, 1.92633)
+script = ExtResource("1_d6xna")
+
+[node name="Floor" type="MeshInstance3D" parent="."]
+mesh = SubResource("PlaneMesh_jpx7t")
+
+[node name="Drones" type="Node3D" parent="."]

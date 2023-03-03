@@ -19,7 +19,6 @@ func _ready():
 	team.id = 0
 	$Drones.add_child(team)
 	
-	
 func deploy_drone():
 	var d = drone_scene.instantiate()
 	d.position = base.position
@@ -68,6 +67,7 @@ func _draw():
 	
 	# draw links from drones to drones
 	var drones = $Drones.get_children()
+	
 #	for d1 in drones:
 #		for d2 in drones:
 #			if d1 == d2 or not d1.active or not d2.active :
@@ -90,7 +90,7 @@ func _input(event):
 		
 		if pan:
 			cam.position -= event.relative
-			
+	
 	if event is InputEventMouseButton:
 		if event.button_index == MOUSE_BUTTON_MIDDLE:
 			pan = event.pressed
@@ -99,8 +99,3 @@ func _input(event):
 			cam.zoom -= Vector2(0.1,0.1)
 		elif event.button_index == MOUSE_BUTTON_WHEEL_UP:
 			cam.zoom += Vector2(0.1,0.1)
-	
-			
-	
-	
-	
