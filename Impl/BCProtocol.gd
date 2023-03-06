@@ -1,9 +1,10 @@
 extends Protocol
 
-var D := 30.0
-var Dmax := 7 * D
-var Dc := 2 * D
-var Dp := Dmax - D
+func _init(D : float):
+	set_D(D)
+	
+func set_D(D : float) -> void :
+	_config = {"D" : D}
 
 func look(state : Dictionary, neighbours : Array[Drone]) -> Array[Dictionary]:
 	var visible := neighbours.filter(func(x): return x.state["active"] and x.state["id"] < state["id"])
@@ -14,6 +15,11 @@ func look(state : Dictionary, neighbours : Array[Drone]) -> Array[Dictionary]:
 	})
 
 func compute(state : Dictionary, messages : Array[String], obs : Array[Dictionary]) -> ComputeResult:
+	
+	var D : float = _config["D"]
+	var Dmax := 7 * D
+	var Dc := 2 * D
+	var Dp := 7*D -D
 	
 	# -- CURRENT STATE ATTRIBUTES --
 	var pos = state["position"] # Vector2 or Vector3

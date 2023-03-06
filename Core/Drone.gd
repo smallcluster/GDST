@@ -1,3 +1,4 @@
+extends Node
 class_name Drone
 
 # -- PUBLIC ATTRIBUTES --
@@ -15,9 +16,6 @@ func get_neighbours() -> Array[Drone]:
 	assert("get_neighbours isn't implemented in child class of Drone")
 	return []
 	
-func set_max_vision(radius : float) -> void:
-	assert("set_max_vision isn't implemented in child class of Drone")
-	
 # -- TO OVERRIDE --
 func update_state() -> void:
 	state = _next_state
@@ -26,7 +24,6 @@ func update_state() -> void:
 func _init(init_state : Dictionary):
 	state = init_state
 	_next_state = init_state
-
 
 # -- FINAL FUNCTIONS --
 func compute_next_state(p : Protocol) -> void:
