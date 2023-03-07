@@ -38,7 +38,8 @@ ssao_enabled = true
 glow_enabled = true
 glow_hdr_threshold = 2.0
 
-[sub_resource type="SphereShape3D" id="SphereShape3D_gt7b6"]
+[sub_resource type="SphereShape3D" id="SphereShape3D_m3sgm"]
+radius = 3.15
 
 [node name="3DPlayground" type="Node3D"]
 
@@ -76,6 +77,11 @@ script = ExtResource("4_2kxkj")
 [node name="Base" type="Node3D" parent="DroneManager"]
 
 [node name="Detection" type="Area3D" parent="DroneManager/Base"]
+collision_layer = 2
+collision_mask = 2
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="DroneManager/Base/Detection"]
-shape = SubResource("SphereShape3D_gt7b6")
+shape = SubResource("SphereShape3D_m3sgm")
+
+[node name="Visualization" type="Node3D" parent="DroneManager/Base"]
+visible = false

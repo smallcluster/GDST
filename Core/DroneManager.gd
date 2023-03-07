@@ -1,12 +1,9 @@
-extends Node
 class_name DroneManager
 
-var _protocol : Protocol
-
-func simulate(drones : Array[Drone]):
+func simulate(drones : Array[Drone], protocol : Protocol):
 	# Compute next drone state
 	for d in drones:
-		d.compute_next_state(_protocol)
+		d.compute_next_state(protocol)
 	# Update drone state
 	for d in drones:
 		d.update_state()

@@ -1,4 +1,3 @@
-extends Node
 class_name Drone
 
 # -- PUBLIC ATTRIBUTES --
@@ -8,26 +7,20 @@ var state : Dictionary
 var _next_state : Dictionary
 var _messages : Array[String] = []
 var _neighbours : Array[Drone] = []
+var _get_neighbours : Callable
 
 #-------------------------------------------------------------------------------
 
-# -- ABSTRACT FUNCTIONS --
-func get_neighbours() -> Array[Drone]:
-	assert("get_neighbours isn't implemented in child class of Drone")
-	return []
-	
-# -- TO OVERRIDE --
-func update_state() -> void:
-	state = _next_state
-
 # -- CONSTRUCTOR --
-func _init(init_state : Dictionary):
+func _init(init_state : Dictionary, get_neighbours_func : Callable):
 	state = init_state
 	_next_state = init_state
+	_get_neighbours = get_neighbours_func
+
 
 # -- FINAL FUNCTIONS --
 func compute_next_state(p : Protocol) -> void:
-	_neighbours = get_neighbours()
+	_neighbours = _get_neighbours.call()
 	var obs : Array[Dictionary] = p.look(state, _neighbours)
 	var msg = _messages.duplicate()
 	_messages.clear()
@@ -44,4 +37,7 @@ func broadcast_message(msg : String) -> void:
 		
 func receive_message(msg : String) -> void:
 	_messages.append(msg)
+	
+func update_state() -> void:
+	state = _next_state
 
