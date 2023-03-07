@@ -1,6 +1,6 @@
 extends Node3D
 
-var speed := 1
+var speed := 5
 
 func _process(delta):
 	

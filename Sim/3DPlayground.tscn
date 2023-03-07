@@ -1,8 +1,44 @@
-[gd_scene load_steps=3 format=3 uid="uid://omc1jn7fakxh"]
+[gd_scene load_steps=12 format=3 uid="uid://bm0t5e0431jhc"]
 
 [ext_resource type="Script" path="res://Sim/Scripts/CamControls.gd" id="1_d6xna"]
+[ext_resource type="Script" path="res://Sim/Scripts/DroneManager/DroneManager3D.gd" id="2_h5bxm"]
+[ext_resource type="Script" path="res://Sim/Scripts/Lines3D.gd" id="4_2kxkj"]
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_hhsx8"]
+noise_type = 3
+frequency = 0.727
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_o5gq5"]
+width = 2048
+height = 2048
+noise = SubResource("FastNoiseLite_hhsx8")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_hwn4p"]
+albedo_color = Color(0.203922, 0.203922, 0.203922, 1)
+albedo_texture = SubResource("NoiseTexture2D_o5gq5")
+roughness = 0.88
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_jpx7t"]
+material = SubResource("StandardMaterial3D_hwn4p")
+
+[sub_resource type="PhysicalSkyMaterial" id="PhysicalSkyMaterial_cbrid"]
+ground_color = Color(0.466667, 0.368627, 0.254902, 1)
+energy_multiplier = 1.3
+
+[sub_resource type="Sky" id="Sky_5nc5a"]
+sky_material = SubResource("PhysicalSkyMaterial_cbrid")
+
+[sub_resource type="Environment" id="Environment_rwdsu"]
+background_mode = 2
+sky = SubResource("Sky_5nc5a")
+tonemap_mode = 3
+tonemap_exposure = 1.5
+tonemap_white = 2.0
+ssao_enabled = true
+glow_enabled = true
+glow_hdr_threshold = 2.0
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_gt7b6"]
 
 [node name="3DPlayground" type="Node3D"]
 
@@ -15,12 +51,31 @@ offset_right = 40.0
 offset_bottom = 40.0
 
 [node name="Camera3D" type="Camera3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 0.34202, 0.939693, 0, -0.939693, 0.34202, 0, 3.179, 1.26025)
+transform = Transform3D(1, 0, 0, 0, 0.485511, 0.87423, 0, -0.87423, 0.485511, 0, 5.79725, 2.56231)
 script = ExtResource("1_d6xna")
 
-[node name="Drones" type="Node3D" parent="."]
-
-[node name="Base" type="Node3D" parent="."]
-
 [node name="Floor" type="MeshInstance3D" parent="."]
+transform = Transform3D(10, 0, 0, 0, 10, 0, 0, 0, 10, 0, 0, 0)
 mesh = SubResource("PlaneMesh_jpx7t")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.918329, 0.0705352, 0.389483, -0.395818, 0.163647, 0.90363, 0, -0.983994, 0.178201, 4.70799, 4.6752, 0.156376)
+shadow_enabled = true
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_rwdsu")
+
+[node name="DroneManager" type="Node3D" parent="."]
+script = ExtResource("2_h5bxm")
+
+[node name="Drones" type="Node3D" parent="DroneManager"]
+
+[node name="Lines3D" type="Node3D" parent="DroneManager"]
+script = ExtResource("4_2kxkj")
+
+[node name="Base" type="Node3D" parent="DroneManager"]
+
+[node name="Detection" type="Area3D" parent="DroneManager/Base"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="DroneManager/Base/Detection"]
+shape = SubResource("SphereShape3D_gt7b6")
