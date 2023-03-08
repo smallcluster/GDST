@@ -1,19 +1,23 @@
-[gd_scene load_steps=8 format=3 uid="uid://bh5kbf4347swy"]
+[gd_scene load_steps=9 format=3 uid="uid://bh5kbf4347swy"]
 
 [ext_resource type="Script" path="res://Sim/Scripts/Drone/Drone3D.gd" id="1_30i40"]
 [ext_resource type="Texture2D" uid="uid://caeoxrpblgaxj" path="res://Sim/Icons/avertissement.png" id="3_wjc5g"]
 [ext_resource type="Texture2D" uid="uid://c6tnlleuhhqgq" path="res://Sim/Icons/siren.png" id="4_a6ixo"]
 [ext_resource type="Texture2D" uid="uid://cypehjljct88o" path="res://Sim/Icons/skull.png" id="5_254io"]
 
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_aorqt"]
+albedo_color = Color(0.141176, 0.141176, 0.141176, 1)
+
 [sub_resource type="SphereMesh" id="SphereMesh_glukx"]
+material = SubResource("StandardMaterial3D_aorqt")
 radius = 0.15
 height = 0.3
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_86j3p"]
 radius = 0.15
 
-[sub_resource type="SphereShape3D" id="SphereShape3D_ywfqf"]
-radius = 3.15
+[sub_resource type="SphereShape3D" id="SphereShape3D_qoltj"]
+radius = 2.1
 
 [node name="Drone3D" type="CharacterBody3D"]
 collision_layer = 2
@@ -32,31 +36,34 @@ collision_layer = 2
 collision_mask = 2
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Detection"]
-shape = SubResource("SphereShape3D_ywfqf")
+shape = SubResource("SphereShape3D_qoltj")
 
 [node name="Visualization" type="Node3D" parent="."]
 visible = false
 
 [node name="Indicators" type="Node3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.389733, 0)
+process_priority = 20
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.311618, 0)
 
 [node name="Branch" type="Sprite3D" parent="Indicators"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.128, 0, 0)
 visible = false
 pixel_size = 0.0005
 billboard = 1
+render_priority = 20
 texture = ExtResource("4_a6ixo")
 
 [node name="Warning" type="Sprite3D" parent="Indicators"]
 visible = false
 pixel_size = 0.0006
 billboard = 1
+render_priority = 20
 texture = ExtResource("3_wjc5g")
 
 [node name="Death" type="Sprite3D" parent="Indicators"]
 visible = false
 pixel_size = 0.0005
 billboard = 1
+render_priority = 20
 texture = ExtResource("5_254io")
 
 [node name="LabelID" type="Label3D" parent="."]

@@ -3,7 +3,7 @@ extends CharacterBody3D
 class_name Drone3D
 
 # PUBLIC ATTRIBUTES
-@export var D : float = 0.45 : set = _set_D
+@export var D : float = 0.3 : set = _set_D
 @export var id : int = 0 : set = _set_id
 @export var show_radius : bool = false : set = _set_show_radius
 @export var warn : bool = false : set = _set_warn
@@ -25,10 +25,18 @@ func update() -> void:
 	# update active last as it disable warn & not_main
 	active = state["active"]
 	
-func move() -> Tween:
+func set_pos(pos : Vector3) -> void:
+	if not is_inside_tree(): await ready
+	position = pos
+	_drone.state["position"] = pos
+	
+func move(speed : float = 0.05) -> Tween:
 	var TW = create_tween()
-	TW.tween_property(self, "position", _drone.state["position"], 1)
+	TW.tween_property(self, "position", _drone.state["position"], speed)
 	return TW
+	
+func get_neighbours() -> Array:
+	return _detection.get_overlapping_bodies().filter(func(x): return x.id != id)
 	
 # -- PRIVATE METHODS --	
 func _ready():
@@ -50,13 +58,14 @@ func _ready():
 	_drone = Drone.new(state, get_neighbours_func)
 
 func _process(delta):
+	pass
 	# Render drone status as billboards
-	var cam = get_viewport().get_camera_3d()
-	if cam:
-		var inds := $Indicators
-		var camera_pos = cam.global_transform.origin
-		camera_pos.y = inds.position.y
-		inds.look_at(camera_pos, Vector3(0, 1, 0))
+#	var cam = get_viewport().get_camera_3d()
+#	if cam:
+#		var inds := $Indicators
+#		var camera_pos = cam.global_transform.origin
+#		camera_pos.y = 0
+#		inds.look_at(camera_pos, Vector3(0, 1, 0))
 		
 
 # -- SETTERS --

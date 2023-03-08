@@ -18,5 +18,6 @@ func _process(delta):
 		dir.y += 1
 	if Input.is_action_pressed("cam_down"):
 		dir.y -= 1
+		
 	
 	position += dir.normalized() * speed * delta

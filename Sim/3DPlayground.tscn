@@ -1,22 +1,16 @@
-[gd_scene load_steps=12 format=3 uid="uid://bm0t5e0431jhc"]
+[gd_scene load_steps=19 format=3 uid="uid://bm0t5e0431jhc"]
 
 [ext_resource type="Script" path="res://Sim/Scripts/CamControls.gd" id="1_d6xna"]
+[ext_resource type="Script" path="res://Sim/Scripts/3DPlayground.gd" id="1_o65i0"]
 [ext_resource type="Script" path="res://Sim/Scripts/DroneManager/DroneManager3D.gd" id="2_h5bxm"]
+[ext_resource type="Texture2D" uid="uid://c4eca4yln2mr0" path="res://Sim/Textures/_1m x 1m_dark.png" id="3_2bnwl"]
 [ext_resource type="Script" path="res://Sim/Scripts/Lines3D.gd" id="4_2kxkj"]
-
-[sub_resource type="FastNoiseLite" id="FastNoiseLite_hhsx8"]
-noise_type = 3
-frequency = 0.727
-
-[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_o5gq5"]
-width = 2048
-height = 2048
-noise = SubResource("FastNoiseLite_hhsx8")
+[ext_resource type="Texture2D" uid="uid://b373k862pdx4a" path="res://Sim/Textures/_1m x 1m_orange.png" id="5_5xvjl"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_hwn4p"]
-albedo_color = Color(0.203922, 0.203922, 0.203922, 1)
-albedo_texture = SubResource("NoiseTexture2D_o5gq5")
-roughness = 0.88
+albedo_texture = ExtResource("3_2bnwl")
+uv1_triplanar = true
+uv1_world_triplanar = true
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_jpx7t"]
 material = SubResource("StandardMaterial3D_hwn4p")
@@ -38,50 +32,130 @@ ssao_enabled = true
 glow_enabled = true
 glow_hdr_threshold = 2.0
 
-[sub_resource type="SphereShape3D" id="SphereShape3D_m3sgm"]
-radius = 3.15
+[sub_resource type="SphereShape3D" id="SphereShape3D_cbnke"]
+radius = 2.1
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_j24ev"]
+albedo_texture = ExtResource("5_5xvjl")
+uv1_triplanar = true
+uv1_world_triplanar = true
+
+[sub_resource type="BoxMesh" id="BoxMesh_wo8el"]
+material = SubResource("StandardMaterial3D_j24ev")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_3mm7y"]
+albedo_texture = ExtResource("5_5xvjl")
+uv1_triplanar = true
+uv1_world_triplanar = true
+
+[sub_resource type="PrismMesh" id="PrismMesh_d7chh"]
+material = SubResource("StandardMaterial3D_3mm7y")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_rl2ih"]
+shading_mode = 0
+albedo_color = Color(0, 0, 1, 1)
+
+[sub_resource type="SphereMesh" id="SphereMesh_3i8wc"]
+material = SubResource("StandardMaterial3D_rl2ih")
 
 [node name="3DPlayground" type="Node3D"]
+script = ExtResource("1_o65i0")
 
 [node name="GUI" type="CanvasLayer" parent="."]
 
 [node name="Control" type="Control" parent="GUI"]
 layout_mode = 3
-anchors_preset = 0
-offset_right = 40.0
-offset_bottom = 40.0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="HSplitContainer" type="HSplitContainer" parent="GUI/Control"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Panel" type="PanelContainer" parent="GUI/Control/HSplitContainer"]
+layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="GUI/Control/HSplitContainer/Panel"]
+layout_mode = 2
+
+[node name="ShowRadius" type="CheckButton" parent="GUI/Control/HSplitContainer/Panel/VBoxContainer"]
+layout_mode = 2
+button_pressed = true
+text = "Show vision"
+
+[node name="TopDownView" type="CheckButton" parent="GUI/Control/HSplitContainer/Panel/VBoxContainer"]
+layout_mode = 2
+text = "Top down view"
+
+[node name="DisableShadows" type="CheckButton" parent="GUI/Control/HSplitContainer/Panel/VBoxContainer"]
+layout_mode = 2
+text = "Disable shadows"
+
+[node name="Control" type="Control" parent="GUI/Control/HSplitContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
 
 [node name="Camera3D" type="Camera3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 0.485511, 0.87423, 0, -0.87423, 0.485511, 0, 5.79725, 2.56231)
+transform = Transform3D(1, 0, 0, 0, 0.5, 0.866025, 0, -0.866025, 0.5, 0, 5.79725, 2.56231)
+fov = 90.0
+size = 10.0
+far = 100.0
 script = ExtResource("1_d6xna")
 
 [node name="Floor" type="MeshInstance3D" parent="."]
-transform = Transform3D(10, 0, 0, 0, 10, 0, 0, 0, 10, 0, 0, 0)
+transform = Transform3D(100, 0, 0, 0, 100, 0, 0, 0, 100, 0, 0, 0)
 mesh = SubResource("PlaneMesh_jpx7t")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
-transform = Transform3D(0.918329, 0.0705352, 0.389483, -0.395818, 0.163647, 0.90363, 0, -0.983994, 0.178201, 4.70799, 4.6752, 0.156376)
+transform = Transform3D(0.918329, 0.0705351, 0.389483, -0.395818, 0.163647, 0.90363, 0, -0.983994, 0.178201, 4.70799, 4.6752, 0.156376)
 shadow_enabled = true
+directional_shadow_max_distance = 50.0
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_rwdsu")
 
-[node name="DroneManager" type="Node3D" parent="."]
+[node name="3DDroneManager" type="Node3D" parent="."]
 script = ExtResource("2_h5bxm")
+show_radius = true
 
-[node name="Drones" type="Node3D" parent="DroneManager"]
+[node name="Base" type="Node3D" parent="3DDroneManager"]
 
-[node name="Lines3D" type="Node3D" parent="DroneManager"]
-script = ExtResource("4_2kxkj")
-
-[node name="Base" type="Node3D" parent="DroneManager"]
-
-[node name="Detection" type="Area3D" parent="DroneManager/Base"]
+[node name="Detection" type="Area3D" parent="3DDroneManager/Base"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.00312996, 2.37709, -0.00656414)
 collision_layer = 2
 collision_mask = 2
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="DroneManager/Base/Detection"]
-shape = SubResource("SphereShape3D_m3sgm")
+[node name="CollisionShape3D" type="CollisionShape3D" parent="3DDroneManager/Base/Detection"]
+shape = SubResource("SphereShape3D_cbnke")
 
-[node name="Visualization" type="Node3D" parent="DroneManager/Base"]
-visible = false
+[node name="Visualization" type="Node3D" parent="3DDroneManager/Base/Detection"]
+
+[node name="model" type="MeshInstance3D" parent="3DDroneManager/Base"]
+transform = Transform3D(1.5, 0, 0, 0, 1, 0, 0, 0, 2, 0, 0.5, 0)
+mesh = SubResource("BoxMesh_wo8el")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="3DDroneManager/Base/model"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+mesh = SubResource("PrismMesh_d7chh")
+
+[node name="Drones" type="Node3D" parent="3DDroneManager"]
+
+[node name="Lines3D" type="Node3D" parent="3DDroneManager"]
+script = ExtResource("4_2kxkj")
+
+[node name="SearchTeam" type="Node3D" parent="3DDroneManager"]
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="3DDroneManager/SearchTeam"]
+transform = Transform3D(0.45, 0, 0, 0, 0.45, 0, 0, 0, 0.45, 0, 0, 0)
+mesh = SubResource("SphereMesh_3i8wc")
+
+[connection signal="toggled" from="GUI/Control/HSplitContainer/Panel/VBoxContainer/ShowRadius" to="." method="_on_show_radius_toggled"]
+[connection signal="toggled" from="GUI/Control/HSplitContainer/Panel/VBoxContainer/TopDownView" to="." method="_on_top_down_view_toggled"]
+[connection signal="toggled" from="GUI/Control/HSplitContainer/Panel/VBoxContainer/DisableShadows" to="." method="_on_disable_shadows_toggled"]
