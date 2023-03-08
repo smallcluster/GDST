@@ -5,6 +5,7 @@ class_name DroneManager3D
 
 @export var D := 0.3 : set = set_D
 @export var show_radius := false : set = _set_show_radius
+@export var movement_time := 0.05
 
 
 @onready var _drones = $Drones
@@ -80,7 +81,7 @@ func _simulation_loop(drones3D : Array[Drone3D]) -> void:
 	for d in drones3D:
 		d.update()
 	# Move and wait for all movement to finish
-	var tweens = drones3D.map(func(x): return x.move())
+	var tweens = drones3D.map(func(x): return x.move(movement_time))
 	for t in tweens:
 		await t.finished
 	_simulating = false # Release lock
@@ -158,7 +159,7 @@ func _deploy_new_drone() -> Tween:
 	d.position = _base.position
 	_drones.add_child(d)
 	d.get_drone().state["position"] = target_pos
-	return d.move()
+	return d.move(movement_time)
 	
 func set_search_target(pos : Vector2) -> void:
 	if _search_drone:

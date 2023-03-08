@@ -30,9 +30,9 @@ func set_pos(pos : Vector3) -> void:
 	position = pos
 	_drone.state["position"] = pos
 	
-func move(speed : float = 0.05) -> Tween:
+func move(time : float = 0.05) -> Tween:
 	var TW = create_tween()
-	TW.tween_property(self, "position", _drone.state["position"], speed)
+	TW.tween_property(self, "position", _drone.state["position"], time)
 	return TW
 	
 func get_neighbours() -> Array:
