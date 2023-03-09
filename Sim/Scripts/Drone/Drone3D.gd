@@ -32,6 +32,7 @@ func set_pos(pos : Vector3) -> void:
 	
 func move(time : float = 0.05) -> Tween:
 	var TW = create_tween()
+	TW.set_process_mode(Tween.TWEEN_PROCESS_PHYSICS)
 	TW.tween_property(self, "position", _drone.state["position"], time)
 	return TW
 	

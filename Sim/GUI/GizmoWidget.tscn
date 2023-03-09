@@ -1,0 +1,122 @@
+[gd_scene load_steps=13 format=3 uid="uid://du28do6d78ulu"]
+
+[ext_resource type="Script" path="res://Sim/Scripts/GUI/Gizmo.gd" id="1_hpavv"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_i0ge3"]
+shading_mode = 0
+albedo_color = Color(0, 1, 0, 1)
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_iomse"]
+material = SubResource("StandardMaterial3D_i0ge3")
+top_radius = 0.01
+bottom_radius = 0.01
+height = 0.4
+radial_segments = 32
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_ok8rd"]
+material = SubResource("StandardMaterial3D_i0ge3")
+top_radius = 0.0
+bottom_radius = 0.05
+height = 0.25
+radial_segments = 32
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_3c3b4"]
+shading_mode = 0
+albedo_color = Color(1, 0, 0, 1)
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_qcjft"]
+material = SubResource("StandardMaterial3D_3c3b4")
+top_radius = 0.01
+bottom_radius = 0.01
+height = 0.4
+radial_segments = 32
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_k8alp"]
+shading_mode = 0
+albedo_color = Color(1, 0, 0, 1)
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_l01yo"]
+material = SubResource("StandardMaterial3D_k8alp")
+top_radius = 0.0
+bottom_radius = 0.05
+height = 0.25
+radial_segments = 32
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_t7ci6"]
+shading_mode = 0
+albedo_color = Color(0, 0, 1, 1)
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_vfnky"]
+material = SubResource("StandardMaterial3D_t7ci6")
+top_radius = 0.01
+bottom_radius = 0.01
+height = 0.4
+radial_segments = 32
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_l8bsg"]
+material = SubResource("StandardMaterial3D_t7ci6")
+top_radius = 0.0
+bottom_radius = 0.05
+height = 0.25
+radial_segments = 32
+
+[sub_resource type="Environment" id="Environment_7xd8n"]
+
+[node name="GizmoWidget" type="SubViewport"]
+msaa_3d = 1
+size = Vector2i(128, 128)
+script = ExtResource("1_hpavv")
+
+[node name="GizmoPivot" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+
+[node name="ArrowY" type="Node3D" parent="GizmoPivot"]
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="GizmoPivot/ArrowY"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0)
+mesh = SubResource("CylinderMesh_iomse")
+skeleton = NodePath("../..")
+
+[node name="MeshInstance3D2" type="MeshInstance3D" parent="GizmoPivot/ArrowY"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+mesh = SubResource("CylinderMesh_ok8rd")
+skeleton = NodePath("../..")
+
+[node name="ArrowX" type="Node3D" parent="GizmoPivot"]
+transform = Transform3D(-4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 0, 0, 1, 0, 0, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="GizmoPivot/ArrowX"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0)
+mesh = SubResource("CylinderMesh_qcjft")
+skeleton = NodePath("../..")
+
+[node name="MeshInstance3D2" type="MeshInstance3D" parent="GizmoPivot/ArrowX"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+mesh = SubResource("CylinderMesh_l01yo")
+skeleton = NodePath("../..")
+
+[node name="ArrowZ" type="Node3D" parent="GizmoPivot"]
+transform = Transform3D(1.91069e-15, -4.37114e-08, -1, -1, -4.37114e-08, 0, -4.37114e-08, 1, -4.37114e-08, 0, 0, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="GizmoPivot/ArrowZ"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0)
+mesh = SubResource("CylinderMesh_vfnky")
+skeleton = NodePath("../..")
+
+[node name="MeshInstance3D2" type="MeshInstance3D" parent="GizmoPivot/ArrowZ"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+mesh = SubResource("CylinderMesh_l8bsg")
+skeleton = NodePath("../..")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_7xd8n")
+
+[node name="CamPivot" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+
+[node name="Camera3D" type="Camera3D" parent="CamPivot"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 2)
+projection = 1
+current = true
+size = 1.25
+far = 5.0

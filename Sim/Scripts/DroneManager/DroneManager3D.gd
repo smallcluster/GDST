@@ -12,13 +12,15 @@ class_name DroneManager3D
 @onready var _lines : Lines3D = $Lines3D as Lines3D
 @onready var _base = $Base
 @onready var _base_detection : Area3D = $Base/Detection
+@onready var _target_vis = $SearchTeam
 var _simulating := false # Act as a lock
 var _drone_manager : DroneManager
 var _protocol : BCProtocol
 var _next_id := 0
-var _search_drone : Drone3D
+var _search_drone : Drone3D = null
 var _search_target_pos : Vector2
 var _drone_scene := preload("res://Sim/Drone3D.tscn")
+var _request_reset := false
 
 func set_D(val : float) -> void:
 	if not is_inside_tree(): await ready
@@ -28,32 +30,52 @@ func set_D(val : float) -> void:
 		d.D = D
 	_update_radius()
 	
+func reset() -> void:
+	_request_reset = true
+	
 func _ready():
 	_protocol = BCProtocol.new()
 	_drone_manager = DroneManager.new()
 	set_D(D)
 	
-func _process(delta):
+func _physics_process(delta):
 	if Engine.is_editor_hint():
 		return
 		
-	# UPDATE
+	# -- UPDATE --
+	
+	# reset simulation
+	if _request_reset and not _simulating:	
+		_target_vis.position = _base.position
+		_request_reset = false
+		_next_id = 0
+		for d in _drones.get_children():
+			d.queue_free()
+			_search_drone = null
+		return
+	
+	# Simulate
 	var drones3D : Array[Drone3D]
 	drones3D.assign(_drones.get_children())
 	_simulation_loop(drones3D)
-	# DRAWING
+	
+	# -- DRAWING --
 	_lines.clear() # clear previous lines
 	#_draw_all_connections(drones3D)
 	_draw_my_connections(drones3D)
 	
 	# Draw beacon from search_team target
-	var s := Vector3(_search_target_pos.x,0,_search_target_pos.y)
-	var e := Vector3(_search_target_pos.x,_base_detection.position.y,_search_target_pos.y)
-	_lines.create_line(s, e, Color.BLUE)
+	if _search_drone:
+		var s := Vector3(_search_target_pos.x,0,_search_target_pos.y)
+		var e := Vector3(_search_target_pos.x,_base_detection.position.y,_search_target_pos.y)
+		_lines.create_line(s, e, Color.BLUE)
+		
+	
 	
 func _simulation_loop(drones3D : Array[Drone3D]) -> void:
 	if _simulating:
 		return
+		
 	_simulating = true # Place lock
 	
 	# Append a new drone ?
@@ -61,9 +83,11 @@ func _simulation_loop(drones3D : Array[Drone3D]) -> void:
 		func(x): return x.get_drone().state["active"]
 	)
 	var closest_to_base = drones_near_base \
-		.map(func(x): return _base_detection.position.distance_squared_to(x.position)) \
+		.map(func(x): return _base_detection.position.distance_squared_to(x.get_drone().state["position"])) \
 		.min()
-	if closest_to_base == null or closest_to_base >= 9*D*D:
+	
+	# TODO : CORRECT BUG (2 drones launched) IF MOVEMENT TIME IS TOO LOW !!!!!
+	if drones_near_base.is_empty() or closest_to_base > 9*D*D:
 		await _deploy_new_drone().finished
 		
 	# simulates all drones
@@ -72,18 +96,21 @@ func _simulation_loop(drones3D : Array[Drone3D]) -> void:
 	_drone_manager.simulate(drones, _protocol)
 	
 	# move search drone
-	var offset : Vector2 = _search_target_pos - Vector2(_search_drone.position.x, _search_drone.position.z)
-	var dist = offset.length()
-	offset = offset.normalized() * clamp(dist, 0, D)
-	_search_drone.get_drone().state["position"] += Vector3(offset.x, 0, offset.y)
+	if _search_drone:
+		var offset : Vector2 = _search_target_pos - Vector2(_search_drone.position.x, _search_drone.position.z)
+		var dist = offset.length()
+		offset = offset.normalized() * clamp(dist, 0, D)
+		_search_drone.get_drone().state["position"] += Vector3(offset.x, 0, offset.y)
 	
 	# Update visualisations
 	for d in drones3D:
 		d.update()
+		
 	# Move and wait for all movement to finish
 	var tweens = drones3D.map(func(x): return x.move(movement_time))
 	for t in tweens:
 		await t.finished
+		
 	_simulating = false # Release lock
 	
 func _draw_all_connections(drones3D : Array[Drone3D]) -> void:
@@ -164,6 +191,7 @@ func _deploy_new_drone() -> Tween:
 func set_search_target(pos : Vector2) -> void:
 	if _search_drone:
 		_search_target_pos = pos
+		_target_vis.position = Vector3(pos.x, _base.position.y, pos.y)
 	
 			
 			
