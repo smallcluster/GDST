@@ -21,6 +21,7 @@ var _search_drone : Drone3D = null
 var _search_target_pos : Vector2
 var _drone_scene := preload("res://Sim/Drone3D.tscn")
 var _request_reset := false
+var _hide_inactive := false
 
 func set_D(val : float) -> void:
 	if not is_inside_tree(): await ready
@@ -29,6 +30,13 @@ func set_D(val : float) -> void:
 	for d in _drones.get_children():
 		d.D = D
 	_update_radius()
+	
+func hide_inactive(val : bool) -> void:
+	_hide_inactive = val
+	
+	for d in _drones.get_children():
+		if not d.get_drone().state["active"]:
+			d.visible = val
 	
 func reset() -> void:
 	_request_reset = true
@@ -111,9 +119,17 @@ func _simulation_loop(drones3D : Array[Drone3D]) -> void:
 	for t in tweens:
 		await t.finished
 		
+	# Hide inactive drone if necessary
+	for d in drones3D:
+		if not d.get_drone().state["active"]:
+			if d.visible != not _hide_inactive:
+				d.visible = not _hide_inactive
+		
 	_simulating = false # Release lock
 	
 func _draw_all_connections(drones3D : Array[Drone3D]) -> void:
+	var points : Array[Vector3] = []
+	
 	var n := drones3D.size()
 	for i in range(n):
 		if not drones3D[i].get_drone().state["active"]:
@@ -122,14 +138,21 @@ func _draw_all_connections(drones3D : Array[Drone3D]) -> void:
 			if not drones3D[j].get_drone().state["active"]:
 				continue
 			if drones3D[i].position.distance_squared_to(drones3D[j].position) <= 49*D*D:
-				_lines.create_line(drones3D[i].position, drones3D[j].position)
+				points.append(drones3D[i].position)
+				points.append(drones3D[j].position)
 	
 	for d in _base_detection.get_overlapping_bodies():
 		if d.get_drone().state["active"]:
-			_lines.create_line(_base_detection.position, d.position)
+			points.append(_base_detection.position)
+			points.append(d.position)
 	
+	# Generate graph mesh
+	if not points.is_empty():
+		_lines.create_graph(points, Color.CYAN)
 				
 func _draw_my_connections(drones3D : Array[Drone3D]) -> void:
+	var points : Array[Vector3] = []
+	
 	for d in drones3D:
 		if not d.get_drone().state["active"]:
 			continue
@@ -141,16 +164,21 @@ func _draw_my_connections(drones3D : Array[Drone3D]) -> void:
 		for o in others:
 			if o.id > max.id:
 				max = o
-		_lines.create_line(d.position, max.position, Color.CYAN)
+		points.append(d.position)
+		points.append(max.position)
 	
 	var base_n = _base_detection.get_overlapping_bodies().filter(func(x): return x.get_drone().state["active"])
-	if base_n.is_empty():
-		return
-	var max = base_n[0]
-	for d in base_n:
-		if d.id > max.id:
-			max = d
-	_lines.create_line(_base_detection.position, max.position, Color.CYAN)
+	if not base_n.is_empty():
+		var max = base_n[0]
+		for d in base_n:
+			if d.id > max.id:
+				max = d
+		points.append(_base_detection.position)
+		points.append(max.position)
+	
+	# Generate graph mesh
+	if not points.is_empty():
+		_lines.create_graph(points, Color.CYAN)
 			
 func _update_radius() -> void:
 	if not is_inside_tree(): await ready

@@ -74,7 +74,6 @@ func _input(event):
 			var offset = position - _rotation_pivot
 			var angle_y = -(_mouse.x-_prev_mouse.x)*0.01
 			var angle_x = -(_mouse.y-_prev_mouse.y)*0.01
-			var right = Vector3(0,1,0).cross(offset).normalized()
 			
 			if rad_to_deg(rotation.x + angle_x)  <= -90:
 				angle_x = deg_to_rad(-89) - rotation.x

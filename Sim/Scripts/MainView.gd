@@ -18,6 +18,7 @@ func show_radius(button_pressed):
 
 func top_down_view(button_pressed):
 	if button_pressed:
+		_cam.global_position.y = 6
 		_cam.switch_to_orthogonal()
 	else:
 		_cam.switch_to_perspective()
@@ -47,10 +48,17 @@ func _input(event):
 	if event is InputEventMouseMotion  and _clicked:
 		_move_search_target(event.position)
 		
-func reset_pressed():
-	_drone_manager.reset()
+func reset_view():
+	_cam.switch_to_perspective()
 	_cam.position = Vector3(0, 6, 3)
 	_cam.rotation_degrees = Vector3(-60, 0, 0)
+	
+func reset_simulation():
+	_drone_manager.reset()
+	
+func hide_inactive_drones(val : bool) -> void:
+	_drone_manager.hide_inactive(val)
+	
 
 func _on_camera_3d_perspective_cam():
 	emit_signal("perspective_cam")# Replace with function body.

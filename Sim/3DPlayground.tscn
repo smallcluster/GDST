@@ -1,4 +1,4 @@
-[gd_scene load_steps=23 format=3 uid="uid://bu6x4bfchxkdv"]
+[gd_scene load_steps=24 format=3 uid="uid://bu6x4bfchxkdv"]
 
 [ext_resource type="Script" path="res://Sim/Scripts/CamControls.gd" id="1_d6xna"]
 [ext_resource type="Script" path="res://Sim/Scripts/3DPlayground.gd" id="1_o65i0"]
@@ -9,6 +9,9 @@
 [ext_resource type="Texture2D" uid="uid://c4eca4yln2mr0" path="res://Sim/Textures/_1m x 1m_dark.png" id="3_2bnwl"]
 [ext_resource type="Script" path="res://Sim/Scripts/Lines3D.gd" id="4_2kxkj"]
 [ext_resource type="Texture2D" uid="uid://b373k862pdx4a" path="res://Sim/Textures/_1m x 1m_orange.png" id="5_5xvjl"]
+
+[sub_resource type="Theme" id="Theme_m7sw8"]
+default_font_size = 20
 
 [sub_resource type="PhysicalSkyMaterial" id="PhysicalSkyMaterial_cbrid"]
 ground_color = Color(0.466667, 0.368627, 0.254902, 1)
@@ -34,7 +37,7 @@ uv1_world_triplanar = true
 material = SubResource("StandardMaterial3D_hwn4p")
 size = Vector2(500, 500)
 
-[sub_resource type="SphereShape3D" id="SphereShape3D_mv37g"]
+[sub_resource type="SphereShape3D" id="SphereShape3D_wlnil"]
 radius = 2.1
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_j24ev"]
@@ -64,8 +67,9 @@ material = SubResource("StandardMaterial3D_rl2ih")
 shader = ExtResource("2_hqret")
 shader_parameter/opacity = 0.25
 
-[node name="3DPlayground" type="CanvasLayer"]
+[node name="3DPlayground" type="CanvasLayer" node_paths=PackedStringArray("_mainView")]
 script = ExtResource("1_o65i0")
+_mainView = NodePath("GUI/VBoxContainer/HSplitContainer/3DView/MainViewContainer/MainView")
 
 [node name="GUI" type="Control" parent="."]
 layout_mode = 3
@@ -74,8 +78,9 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+theme = SubResource("Theme_m7sw8")
 
-[node name="HSplitContainer" type="HSplitContainer" parent="GUI"]
+[node name="VBoxContainer" type="VBoxContainer" parent="GUI"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -83,43 +88,60 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="OptionsPanel" type="PanelContainer" parent="GUI/HSplitContainer"]
+[node name="MenuBarPanel" type="PanelContainer" parent="GUI/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 0
+
+[node name="MenuBar" type="MenuBar" parent="GUI/VBoxContainer/MenuBarPanel"]
 layout_mode = 2
 
-[node name="VBoxContainer" type="VBoxContainer" parent="GUI/HSplitContainer/OptionsPanel"]
-layout_mode = 2
+[node name="Preferences" type="PopupMenu" parent="GUI/VBoxContainer/MenuBarPanel/MenuBar"]
+item_count = 4
+item_0/text = "Statistics"
+item_0/checkable = 1
+item_0/checked = true
+item_0/id = 3
+item_1/text = "Rendering"
+item_1/id = 0
+item_1/separator = true
+item_2/text = "Shadows"
+item_2/checkable = 1
+item_2/checked = true
+item_2/id = 1
+item_3/text = "Antialiasing"
+item_3/checkable = 1
+item_3/checked = true
+item_3/id = 2
 
-[node name="ShowRadius" type="CheckButton" parent="GUI/HSplitContainer/OptionsPanel/VBoxContainer"]
-layout_mode = 2
-text = "Show vision"
+[node name="View" type="PopupMenu" parent="GUI/VBoxContainer/MenuBarPanel/MenuBar"]
+item_count = 6
+item_0/text = "Camera"
+item_0/id = 2
+item_0/separator = true
+item_1/text = "Top Down"
+item_1/checkable = 1
+item_1/id = 0
+item_2/text = "Reset"
+item_2/id = 1
+item_3/text = "Drones"
+item_3/id = 3
+item_3/separator = true
+item_4/text = "Vision"
+item_4/checkable = 1
+item_4/id = 4
+item_5/text = "Hide inactive"
+item_5/checkable = 1
+item_5/id = 5
 
-[node name="TopDownView" type="CheckButton" parent="GUI/HSplitContainer/OptionsPanel/VBoxContainer"]
+[node name="HSplitContainer" type="HSplitContainer" parent="GUI/VBoxContainer"]
 layout_mode = 2
-text = "Top down view"
+size_flags_vertical = 3
 
-[node name="DisableShadows" type="CheckButton" parent="GUI/HSplitContainer/OptionsPanel/VBoxContainer"]
-layout_mode = 2
-text = "Disable shadows"
-
-[node name="MoveTimeLabel" type="Label" parent="GUI/HSplitContainer/OptionsPanel/VBoxContainer"]
-layout_mode = 2
-text = "Movement time"
-
-[node name="MoveTimeSlider" type="HSlider" parent="GUI/HSplitContainer/OptionsPanel/VBoxContainer"]
-layout_mode = 2
-max_value = 0.1
-step = 0.001
-value = 0.05
-
-[node name="Reset" type="Button" parent="GUI/HSplitContainer/OptionsPanel/VBoxContainer"]
-layout_mode = 2
-text = "Reset"
-
-[node name="3DView" type="Control" parent="GUI/HSplitContainer"]
+[node name="3DView" type="Control" parent="GUI/VBoxContainer/HSplitContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="MainViewContainer" type="SubViewportContainer" parent="GUI/HSplitContainer/3DView"]
+[node name="MainViewContainer" type="SubViewportContainer" parent="GUI/VBoxContainer/HSplitContainer/3DView"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -128,15 +150,15 @@ grow_horizontal = 2
 grow_vertical = 2
 stretch = true
 
-[node name="MainView" type="SubViewport" parent="GUI/HSplitContainer/3DView/MainViewContainer"]
+[node name="MainView" type="SubViewport" parent="GUI/VBoxContainer/HSplitContainer/3DView/MainViewContainer"]
 handle_input_locally = false
 msaa_3d = 2
 screen_space_aa = 1
-size = Vector2i(1731, 1080)
+size = Vector2i(1691, 1040)
 render_target_update_mode = 4
 script = ExtResource("2_3aya7")
 
-[node name="Camera3D" type="Camera3D" parent="GUI/HSplitContainer/3DView/MainViewContainer/MainView"]
+[node name="Camera3D" type="Camera3D" parent="GUI/VBoxContainer/HSplitContainer/3DView/MainViewContainer/MainView"]
 transform = Transform3D(1, 0, 0, 0, 0.5, 0.866025, 0, -0.866025, 0.5, 0, 6, 3)
 current = true
 fov = 90.0
@@ -144,67 +166,69 @@ size = 10.0
 far = 100.0
 script = ExtResource("1_d6xna")
 
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="GUI/HSplitContainer/3DView/MainViewContainer/MainView"]
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="GUI/VBoxContainer/HSplitContainer/3DView/MainViewContainer/MainView"]
 transform = Transform3D(0.918329, 0.0705351, 0.389483, -0.395818, 0.163647, 0.90363, 0, -0.983994, 0.178201, 4.70799, 4.6752, 0.156376)
 shadow_enabled = true
 directional_shadow_max_distance = 50.0
 
-[node name="WorldEnvironment" type="WorldEnvironment" parent="GUI/HSplitContainer/3DView/MainViewContainer/MainView"]
+[node name="WorldEnvironment" type="WorldEnvironment" parent="GUI/VBoxContainer/HSplitContainer/3DView/MainViewContainer/MainView"]
 environment = SubResource("Environment_rwdsu")
 
-[node name="Floor" type="MeshInstance3D" parent="GUI/HSplitContainer/3DView/MainViewContainer/MainView"]
+[node name="Floor" type="MeshInstance3D" parent="GUI/VBoxContainer/HSplitContainer/3DView/MainViewContainer/MainView"]
 mesh = SubResource("PlaneMesh_jpx7t")
-skeleton = NodePath("../../../../../..")
+skeleton = NodePath("../../../../../../..")
 
-[node name="3DDroneManager" type="Node3D" parent="GUI/HSplitContainer/3DView/MainViewContainer/MainView"]
+[node name="3DDroneManager" type="Node3D" parent="GUI/VBoxContainer/HSplitContainer/3DView/MainViewContainer/MainView"]
 script = ExtResource("2_h5bxm")
 
-[node name="Base" type="Node3D" parent="GUI/HSplitContainer/3DView/MainViewContainer/MainView/3DDroneManager"]
+[node name="Base" type="Node3D" parent="GUI/VBoxContainer/HSplitContainer/3DView/MainViewContainer/MainView/3DDroneManager"]
 
-[node name="Detection" type="Area3D" parent="GUI/HSplitContainer/3DView/MainViewContainer/MainView/3DDroneManager/Base"]
+[node name="Detection" type="Area3D" parent="GUI/VBoxContainer/HSplitContainer/3DView/MainViewContainer/MainView/3DDroneManager/Base"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.00312996, 2.37709, -0.00656414)
 collision_layer = 2
 collision_mask = 2
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="GUI/HSplitContainer/3DView/MainViewContainer/MainView/3DDroneManager/Base/Detection"]
-shape = SubResource("SphereShape3D_mv37g")
+[node name="CollisionShape3D" type="CollisionShape3D" parent="GUI/VBoxContainer/HSplitContainer/3DView/MainViewContainer/MainView/3DDroneManager/Base/Detection"]
+shape = SubResource("SphereShape3D_wlnil")
 
-[node name="Visualization" type="Node3D" parent="GUI/HSplitContainer/3DView/MainViewContainer/MainView/3DDroneManager/Base/Detection"]
+[node name="Visualization" type="Node3D" parent="GUI/VBoxContainer/HSplitContainer/3DView/MainViewContainer/MainView/3DDroneManager/Base/Detection"]
 visible = false
 
-[node name="model" type="MeshInstance3D" parent="GUI/HSplitContainer/3DView/MainViewContainer/MainView/3DDroneManager/Base"]
+[node name="model" type="MeshInstance3D" parent="GUI/VBoxContainer/HSplitContainer/3DView/MainViewContainer/MainView/3DDroneManager/Base"]
 transform = Transform3D(1.5, 0, 0, 0, 1, 0, 0, 0, 2, 0, 0.5, 0)
 mesh = SubResource("BoxMesh_wo8el")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="GUI/HSplitContainer/3DView/MainViewContainer/MainView/3DDroneManager/Base/model"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="GUI/VBoxContainer/HSplitContainer/3DView/MainViewContainer/MainView/3DDroneManager/Base/model"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
 mesh = SubResource("PrismMesh_d7chh")
 
-[node name="Drones" type="Node3D" parent="GUI/HSplitContainer/3DView/MainViewContainer/MainView/3DDroneManager"]
+[node name="Drones" type="Node3D" parent="GUI/VBoxContainer/HSplitContainer/3DView/MainViewContainer/MainView/3DDroneManager"]
 
-[node name="Lines3D" type="Node3D" parent="GUI/HSplitContainer/3DView/MainViewContainer/MainView/3DDroneManager"]
+[node name="Lines3D" type="Node3D" parent="GUI/VBoxContainer/HSplitContainer/3DView/MainViewContainer/MainView/3DDroneManager"]
 script = ExtResource("4_2kxkj")
 
-[node name="SearchTeam" type="Node3D" parent="GUI/HSplitContainer/3DView/MainViewContainer/MainView/3DDroneManager"]
+[node name="SearchTeam" type="Node3D" parent="GUI/VBoxContainer/HSplitContainer/3DView/MainViewContainer/MainView/3DDroneManager"]
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="GUI/HSplitContainer/3DView/MainViewContainer/MainView/3DDroneManager/SearchTeam"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="GUI/VBoxContainer/HSplitContainer/3DView/MainViewContainer/MainView/3DDroneManager/SearchTeam"]
 transform = Transform3D(0.45, 0, 0, 0, 0.45, 0, 0, 0, 0.45, 0, 0, 0)
 mesh = SubResource("SphereMesh_3i8wc")
 
-[node name="GizmoPanel" type="PanelContainer" parent="GUI/HSplitContainer/3DView"]
+[node name="GizmoPanel" type="PanelContainer" parent="GUI/VBoxContainer/HSplitContainer/3DView"]
 material = SubResource("ShaderMaterial_hh4va")
 layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -128.0
-offset_bottom = 128.0
+offset_left = -144.0
+offset_top = 16.0
+offset_right = -16.0
+offset_bottom = 144.0
 grow_horizontal = 0
 
-[node name="SubViewportContainer" type="SubViewportContainer" parent="GUI/HSplitContainer/3DView/GizmoPanel"]
+[node name="SubViewportContainer" type="SubViewportContainer" parent="GUI/VBoxContainer/HSplitContainer/3DView/GizmoPanel"]
 layout_mode = 2
 
-[node name="GizmoWidget" parent="GUI/HSplitContainer/3DView/GizmoPanel/SubViewportContainer" node_paths=PackedStringArray("_main_cam") instance=ExtResource("2_hbfaq")]
+[node name="GizmoWidget" parent="GUI/VBoxContainer/HSplitContainer/3DView/GizmoPanel/SubViewportContainer" node_paths=PackedStringArray("_main_cam") instance=ExtResource("2_hbfaq")]
 own_world_3d = true
 transparent_bg = true
 handle_input_locally = false
@@ -213,10 +237,67 @@ screen_space_aa = 1
 render_target_update_mode = 4
 _main_cam = NodePath("../../../MainViewContainer/MainView/Camera3D")
 
-[connection signal="toggled" from="GUI/HSplitContainer/OptionsPanel/VBoxContainer/ShowRadius" to="." method="_on_show_radius_toggled"]
-[connection signal="toggled" from="GUI/HSplitContainer/OptionsPanel/VBoxContainer/TopDownView" to="." method="_on_top_down_view_toggled"]
-[connection signal="toggled" from="GUI/HSplitContainer/OptionsPanel/VBoxContainer/DisableShadows" to="." method="_on_disable_shadows_toggled"]
-[connection signal="value_changed" from="GUI/HSplitContainer/OptionsPanel/VBoxContainer/MoveTimeSlider" to="." method="_on_move_time_value_changed"]
-[connection signal="pressed" from="GUI/HSplitContainer/OptionsPanel/VBoxContainer/Reset" to="." method="_on_reset_pressed"]
-[connection signal="perspective_cam" from="GUI/HSplitContainer/3DView/MainViewContainer/MainView" to="." method="_on_perspective_cam"]
-[connection signal="perspective_cam" from="GUI/HSplitContainer/3DView/MainViewContainer/MainView/Camera3D" to="GUI/HSplitContainer/3DView/MainViewContainer/MainView" method="_on_camera_3d_perspective_cam"]
+[node name="StatsPanel" type="PanelContainer" parent="GUI/VBoxContainer/HSplitContainer/3DView"]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 16.0
+offset_top = -106.0
+offset_right = 126.0
+offset_bottom = -16.0
+grow_vertical = 0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="GUI/VBoxContainer/HSplitContainer/3DView/StatsPanel"]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+
+[node name="Label2" type="Label" parent="GUI/VBoxContainer/HSplitContainer/3DView/StatsPanel/VBoxContainer"]
+layout_mode = 2
+text = "Satistics"
+uppercase = true
+
+[node name="HSeparator" type="HSeparator" parent="GUI/VBoxContainer/HSplitContainer/3DView/StatsPanel/VBoxContainer"]
+layout_mode = 2
+
+[node name="FpsLabel" type="Label" parent="GUI/VBoxContainer/HSplitContainer/3DView/StatsPanel/VBoxContainer"]
+layout_mode = 2
+text = "60 FPS"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="OptionsPanel" type="PanelContainer" parent="GUI/VBoxContainer/HSplitContainer"]
+layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="GUI/VBoxContainer/HSplitContainer/OptionsPanel"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="GUI/VBoxContainer/HSplitContainer/OptionsPanel/VBoxContainer"]
+layout_mode = 2
+text = "Simulation Options"
+uppercase = true
+
+[node name="HSeparator" type="HSeparator" parent="GUI/VBoxContainer/HSplitContainer/OptionsPanel/VBoxContainer"]
+layout_mode = 2
+
+[node name="Reset" type="Button" parent="GUI/VBoxContainer/HSplitContainer/OptionsPanel/VBoxContainer"]
+layout_mode = 2
+text = "Reset"
+
+[node name="MoveTimeLabel" type="Label" parent="GUI/VBoxContainer/HSplitContainer/OptionsPanel/VBoxContainer"]
+layout_mode = 2
+text = "Movement time"
+
+[node name="MoveTimeSlider" type="HSlider" parent="GUI/VBoxContainer/HSplitContainer/OptionsPanel/VBoxContainer"]
+layout_mode = 2
+max_value = 0.1
+step = 0.001
+value = 0.05
+
+[connection signal="id_pressed" from="GUI/VBoxContainer/MenuBarPanel/MenuBar/Preferences" to="." method="_on_preferences_id_pressed"]
+[connection signal="id_pressed" from="GUI/VBoxContainer/MenuBarPanel/MenuBar/View" to="." method="_on_view_id_pressed"]
+[connection signal="perspective_cam" from="GUI/VBoxContainer/HSplitContainer/3DView/MainViewContainer/MainView" to="." method="_on_perspective_cam"]
+[connection signal="perspective_cam" from="GUI/VBoxContainer/HSplitContainer/3DView/MainViewContainer/MainView/Camera3D" to="GUI/VBoxContainer/HSplitContainer/3DView/MainViewContainer/MainView" method="_on_camera_3d_perspective_cam"]
+[connection signal="pressed" from="GUI/VBoxContainer/HSplitContainer/OptionsPanel/VBoxContainer/Reset" to="." method="_on_reset_pressed"]
+[connection signal="value_changed" from="GUI/VBoxContainer/HSplitContainer/OptionsPanel/VBoxContainer/MoveTimeSlider" to="." method="_on_move_time_value_changed"]
