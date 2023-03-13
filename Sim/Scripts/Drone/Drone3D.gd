@@ -1,5 +1,5 @@
 @tool
-extends CharacterBody3D
+extends RigidBody3D
 class_name Drone3D
 
 # PUBLIC ATTRIBUTES
@@ -7,125 +7,109 @@ class_name Drone3D
 @export var id : int = 0 : set = _set_id
 @export var show_radius : bool = false : set = _set_show_radius
 @export var warn : bool = false : set = _set_warn
-@export var not_main : bool = false : set = _set_not_main
+@export var border : bool = false : set = _set_border
 @export var active : bool = true : set = _set_active
+@export var color : Color = Color(0.05, 0.05, 0.05): set = _set_color
+var drone : Drone
 
 # PRIVATE ATTRIBUTES
-@onready var _drone : Drone
 @onready var _detection_shape := $Detection/CollisionShape3D
 @onready var _detection := $Detection
-	
-func get_drone() -> Drone :
-	return _drone
+
+var _initial_state : Dictionary
 	
 func update() -> void:
-	var state := _drone.state
-	warn = state["light"]
-	not_main = state["not_main"]
-	# update active last as it disable warn & not_main
+	var state := drone.state
+	warn = state.has("light") and state["light"]
+	border = state.has("border") and state["border"]
 	active = state["active"]
 	
 func set_pos(pos : Vector3) -> void:
 	if not is_inside_tree(): await ready
 	position = pos
-	_drone.state["position"] = pos
+	drone.state["position"] = pos
 	
 func move(time : float = 0.05) -> Tween:
 	var TW = create_tween()
 	TW.set_process_mode(Tween.TWEEN_PROCESS_PHYSICS)
-	TW.tween_property(self, "position", _drone.state["position"], time)
+	TW.tween_property(self, "position", drone.state["position"], time)
+	TW.tween_callback(func(): position = drone.state["position"])
 	return TW
 	
 func get_neighbours() -> Array:
 	return _detection.get_overlapping_bodies().filter(func(x): return x.id != id)
 	
+func init(id, state, radius) -> Drone3D:
+	_initial_state = state
+	self.id = id
+	D = radius
+	return self
+	
 # -- PRIVATE METHODS --	
 func _ready():
-	# setup detection radius and visualisations
-	_update_detection_radius(D)
-	# Set up drone object
-	var state = {
-		"id" : id,
-		"light" : warn,
-		"active" : active,
-		"position" : position,
-		"not_main" : not_main
-	}
+	# setup drone object
+	var get_neighbours_func := func(): return (_detection.get_overlapping_bodies() if drone.state["active"] else [])  \
+	.map(func(x): return x.drone) \
+	.filter(func(x): return x.state["id"] != drone.state["id"])
+	drone = Drone.new(_initial_state, get_neighbours_func)
 	
-	var get_neighbours_func := func(): return _detection.get_overlapping_bodies() \
-	.map(func(x): return x.get_drone()) \
-	.filter(func(x): return x.state["id"] != _drone.state["id"])
 	
-	_drone = Drone.new(state, get_neighbours_func)
-
-func _process(delta):
-	pass
-	# Render drone status as billboards
-#	var cam = get_viewport().get_camera_3d()
-#	if cam:
-#		var inds := $Indicators
-#		var camera_pos = cam.global_transform.origin
-#		camera_pos.y = 0
-#		inds.look_at(camera_pos, Vector3(0, 1, 0))
-		
-
 # -- SETTERS --
 func _set_D(val : float) -> void:
 	if not is_inside_tree(): await ready
-	D = val
-	_update_detection_radius(D)
-		
-func _set_warn(val : bool) -> void:
-	if not is_inside_tree(): await ready
-	warn = val
-	_drone.state["light"] = warn
-	_update_visuals()
-	
-func _set_not_main(val : bool) -> void:
-	if not is_inside_tree(): await ready
-	not_main = val
-	_drone.state["not_main"] = not_main
-	_update_visuals()
-	
-func _set_active(val : bool) -> void:
-	if not is_inside_tree(): await ready
-	active = val
-	_drone.state["active"] = active
-	_update_visuals()
-		
-func _set_id(val : int) -> void:
-	if not is_inside_tree(): await ready
-	id = val
-	$LabelID.text = str(val)
-	_drone.state["id"] = id
-	
-func _set_show_radius(val : bool) -> void:
-	if not is_inside_tree(): await ready
-	show_radius = val
-	$Visualization.visible = val and active
-
-# -- HELPERS --
-func _update_visuals() -> void:
-	$Indicators/Death.visible = not active
-	$Visualization.visible = show_radius and active
-	$Indicators/Warning.visible = warn and active
-	$Indicators/Branch.visible = not_main and active
-	# Place status correctly
-	var w = 0.256
-	var ind = $Indicators.get_children().filter(func(x): return x.visible)
-	var n = ind.size()
-	var dx = n*w / 4 if n > 1 else 0
-	for i in range(n):
-		var sprite = ind[i]
-		sprite.position = Vector3(i*w-dx, 0, 0)
-
-func _update_detection_radius(D : float) -> void:
 	var Dmax := 7 * D
 	var Dc := 2 * D
 	var Dp := Dmax - D
 	_set_circles(Dmax, Dp, Dc, D)
 	_detection_shape.shape = SphereShape3D.new()
 	_detection_shape.shape.radius = Dmax
+	
+func _set_warn(val : bool) -> void:
+	if not is_inside_tree(): await ready
+	warn = val
+	drone.state["light"] = warn
+	_update_visuals()
+	
+func _set_border(val : bool) -> void:
+	if not is_inside_tree(): await ready
+	border = val
+	drone.state["border"] = border
+	_update_visuals()
+	
+func _set_active(val : bool) -> void:
+	if not is_inside_tree(): await ready
+	active = val
+	drone.state["active"] = active
+	_update_visuals()
+		
+func _set_id(val : int) -> void:
+	if not is_inside_tree(): await ready
+	id = val
+	$LabelID.text = str(val)
+	drone.state["id"] = id
+	
+func _set_show_radius(val : bool) -> void:
+	if not is_inside_tree(): await ready
+	show_radius = val
+	$Visualization.visible = val and active
+	
+func _set_color(val : Color) -> void:
+	if not is_inside_tree(): await ready
+	color = val
+	$Mesh.set_instance_shader_parameter("color", val)
+
+# -- HELPERS --
+func _update_visuals() -> void:
+	$Visualization.visible = show_radius and active
+	# Change color
+	if not active:
+		color = Color.DIM_GRAY
+	elif warn:
+		color = Color.RED
+	elif border:
+		color = Color.MAGENTA
+	else:
+		color = Color(0.05, 0.05, 0.05)
 	
 func _set_circles(Dmax : float, Dp : float, Dc : float, D : float) -> void:
 	var circles_root = $Visualization

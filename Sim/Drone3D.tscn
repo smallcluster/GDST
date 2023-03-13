@@ -1,31 +1,39 @@
-[gd_scene load_steps=9 format=3 uid="uid://bh5kbf4347swy"]
+[gd_scene load_steps=8 format=3 uid="uid://bh5kbf4347swy"]
 
 [ext_resource type="Script" path="res://Sim/Scripts/Drone/Drone3D.gd" id="1_30i40"]
-[ext_resource type="Texture2D" uid="uid://caeoxrpblgaxj" path="res://Sim/Icons/avertissement.png" id="3_wjc5g"]
-[ext_resource type="Texture2D" uid="uid://c6tnlleuhhqgq" path="res://Sim/Icons/siren.png" id="4_a6ixo"]
-[ext_resource type="Texture2D" uid="uid://cypehjljct88o" path="res://Sim/Icons/skull.png" id="5_254io"]
+[ext_resource type="Shader" path="res://Sim/Shaders/Drone3D.gdshader" id="2_5kb5s"]
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_aorqt"]
-albedo_color = Color(0.141176, 0.141176, 0.141176, 1)
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_58p2w"]
+render_priority = 0
+shader = ExtResource("2_5kb5s")
 
 [sub_resource type="SphereMesh" id="SphereMesh_glukx"]
-material = SubResource("StandardMaterial3D_aorqt")
+material = SubResource("ShaderMaterial_58p2w")
 radius = 0.15
 height = 0.3
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_58auw"]
+render_priority = 0
+shader = ExtResource("2_5kb5s")
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_86j3p"]
 radius = 0.15
 
-[sub_resource type="SphereShape3D" id="SphereShape3D_xyq1p"]
+[sub_resource type="SphereShape3D" id="SphereShape3D_nseqa"]
 radius = 2.1
 
-[node name="Drone3D" type="CharacterBody3D"]
+[node name="Drone3D" type="RigidBody3D"]
 collision_layer = 2
-collision_mask = 2
+collision_mask = 0
+gravity_scale = 0.0
+can_sleep = false
+lock_rotation = true
 script = ExtResource("1_30i40")
 
 [node name="Mesh" type="MeshInstance3D" parent="."]
+instance_shader_parameters/color = Color(0.05, 0.05, 0.05, 1)
 mesh = SubResource("SphereMesh_glukx")
+surface_material_override/0 = SubResource("ShaderMaterial_58auw")
 
 [node name="Collision" type="CollisionShape3D" parent="."]
 visible = false
@@ -36,35 +44,10 @@ collision_layer = 2
 collision_mask = 2
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Detection"]
-shape = SubResource("SphereShape3D_xyq1p")
+shape = SubResource("SphereShape3D_nseqa")
 
 [node name="Visualization" type="Node3D" parent="."]
 visible = false
-
-[node name="Indicators" type="Node3D" parent="."]
-process_priority = 20
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.311618, 0)
-
-[node name="Branch" type="Sprite3D" parent="Indicators"]
-visible = false
-pixel_size = 0.0005
-billboard = 1
-render_priority = 20
-texture = ExtResource("4_a6ixo")
-
-[node name="Warning" type="Sprite3D" parent="Indicators"]
-visible = false
-pixel_size = 0.0006
-billboard = 1
-render_priority = 20
-texture = ExtResource("3_wjc5g")
-
-[node name="Death" type="Sprite3D" parent="Indicators"]
-visible = false
-pixel_size = 0.0005
-billboard = 1
-render_priority = 20
-texture = ExtResource("5_254io")
 
 [node name="LabelID" type="Label3D" parent="."]
 transform = Transform3D(0.75, 0, 0, 0, 0.75, 0, 0, 0, 0.75, 0, 0, 0)

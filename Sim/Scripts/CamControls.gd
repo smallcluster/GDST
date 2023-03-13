@@ -14,25 +14,6 @@ var _mouse := Vector2(0,0)
 var _rotation_pivot = null
 
 
-func _process(delta):
-	
-	var dir = Vector3(0,0,0)
-	
-	if Input.is_action_pressed("cam_forwards"):
-		dir.z -= 1
-	if Input.is_action_pressed("cam_backwards"):
-		dir.z += 1
-	if Input.is_action_pressed("cam_right"):
-		dir.x += 1
-	if Input.is_action_pressed("cam_left"):
-		dir.x -= 1
-	if Input.is_action_pressed("cam_up"):
-		dir.y += 1
-	if Input.is_action_pressed("cam_down"):
-		dir.y -= 1
-		
-	global_position +=  dir.normalized().rotated(Vector3(0,1,0), rotation.y) * speed * delta
-	
 func _input(event):
 	
 	if event is InputEventMouse:

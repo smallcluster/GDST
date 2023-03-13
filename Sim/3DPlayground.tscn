@@ -29,6 +29,7 @@ tonemap_white = 2.0
 glow_hdr_threshold = 2.0
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_hwn4p"]
+albedo_color = Color(0.839216, 0.839216, 0.839216, 1)
 albedo_texture = ExtResource("3_2bnwl")
 uv1_triplanar = true
 uv1_world_triplanar = true
@@ -37,7 +38,7 @@ uv1_world_triplanar = true
 material = SubResource("StandardMaterial3D_hwn4p")
 size = Vector2(500, 500)
 
-[sub_resource type="SphereShape3D" id="SphereShape3D_wlnil"]
+[sub_resource type="SphereShape3D" id="SphereShape3D_s5rdl"]
 radius = 2.1
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_j24ev"]
@@ -57,22 +58,27 @@ uv1_world_triplanar = true
 material = SubResource("StandardMaterial3D_3mm7y")
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_rl2ih"]
+transparency = 1
 shading_mode = 0
-albedo_color = Color(0, 0, 1, 1)
+albedo_color = Color(0, 0, 1, 0.498039)
 
 [sub_resource type="SphereMesh" id="SphereMesh_3i8wc"]
 material = SubResource("StandardMaterial3D_rl2ih")
+radius = 0.15
+height = 0.3
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_hh4va"]
 shader = ExtResource("2_hqret")
 shader_parameter/opacity = 0.25
 
-[node name="3DPlayground" type="CanvasLayer" node_paths=PackedStringArray("_mainView")]
+[node name="3DPlayground" type="CanvasLayer" node_paths=PackedStringArray("mainView", "fps_label", "link_expr", "protocol_choice")]
 script = ExtResource("1_o65i0")
-_mainView = NodePath("GUI/VBoxContainer/HSplitContainer/3DView/MainViewContainer/MainView")
+mainView = NodePath("GUI/VBoxContainer/HSplitContainer/3DView/MainViewContainer/MainView")
+fps_label = NodePath("GUI/VBoxContainer/HSplitContainer/3DView/StatsPanel/VBoxContainer/FpsLabel")
+link_expr = NodePath("GUI/VBoxContainer/HSplitContainer/OptionsPanel/VBoxContainer/LinkExp")
+protocol_choice = NodePath("GUI/VBoxContainer/HSplitContainer/OptionsPanel/VBoxContainer/ProtocolChoice")
 
-[node name="GUI" type="Control" parent="."]
-layout_mode = 3
+[node name="GUI" type="Panel" parent="."]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -136,6 +142,7 @@ item_5/id = 5
 [node name="HSplitContainer" type="HSplitContainer" parent="GUI/VBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 3
+split_offset = 724
 
 [node name="3DView" type="Control" parent="GUI/VBoxContainer/HSplitContainer"]
 layout_mode = 2
@@ -154,7 +161,7 @@ stretch = true
 handle_input_locally = false
 msaa_3d = 2
 screen_space_aa = 1
-size = Vector2i(1691, 1040)
+size = Vector2i(1678, 1040)
 render_target_update_mode = 4
 script = ExtResource("2_3aya7")
 
@@ -189,7 +196,7 @@ collision_layer = 2
 collision_mask = 2
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="GUI/VBoxContainer/HSplitContainer/3DView/MainViewContainer/MainView/3DDroneManager/Base/Detection"]
-shape = SubResource("SphereShape3D_wlnil")
+shape = SubResource("SphereShape3D_s5rdl")
 
 [node name="Visualization" type="Node3D" parent="GUI/VBoxContainer/HSplitContainer/3DView/MainViewContainer/MainView/3DDroneManager/Base/Detection"]
 visible = false
@@ -210,7 +217,6 @@ script = ExtResource("4_2kxkj")
 [node name="SearchTeam" type="Node3D" parent="GUI/VBoxContainer/HSplitContainer/3DView/MainViewContainer/MainView/3DDroneManager"]
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="GUI/VBoxContainer/HSplitContainer/3DView/MainViewContainer/MainView/3DDroneManager/SearchTeam"]
-transform = Transform3D(0.45, 0, 0, 0, 0.45, 0, 0, 0, 0.45, 0, 0, 0)
 mesh = SubResource("SphereMesh_3i8wc")
 
 [node name="GizmoPanel" type="PanelContainer" parent="GUI/VBoxContainer/HSplitContainer/3DView"]
@@ -269,25 +275,30 @@ vertical_alignment = 1
 
 [node name="OptionsPanel" type="PanelContainer" parent="GUI/VBoxContainer/HSplitContainer"]
 layout_mode = 2
+size_flags_horizontal = 3
 
 [node name="VBoxContainer" type="VBoxContainer" parent="GUI/VBoxContainer/HSplitContainer/OptionsPanel"]
-layout_mode = 2
-
-[node name="Label" type="Label" parent="GUI/VBoxContainer/HSplitContainer/OptionsPanel/VBoxContainer"]
-layout_mode = 2
-text = "Simulation Options"
-uppercase = true
-
-[node name="HSeparator" type="HSeparator" parent="GUI/VBoxContainer/HSplitContainer/OptionsPanel/VBoxContainer"]
 layout_mode = 2
 
 [node name="Reset" type="Button" parent="GUI/VBoxContainer/HSplitContainer/OptionsPanel/VBoxContainer"]
 layout_mode = 2
 text = "Reset"
 
+[node name="KillInactive" type="Button" parent="GUI/VBoxContainer/HSplitContainer/OptionsPanel/VBoxContainer"]
+layout_mode = 2
+text = "Kill Inactive"
+
+[node name="Label" type="Label" parent="GUI/VBoxContainer/HSplitContainer/OptionsPanel/VBoxContainer"]
+layout_mode = 2
+text = "Options"
+uppercase = true
+
+[node name="HSeparator" type="HSeparator" parent="GUI/VBoxContainer/HSplitContainer/OptionsPanel/VBoxContainer"]
+layout_mode = 2
+
 [node name="MoveTimeLabel" type="Label" parent="GUI/VBoxContainer/HSplitContainer/OptionsPanel/VBoxContainer"]
 layout_mode = 2
-text = "Movement time"
+text = "Movement time: 50ms"
 
 [node name="MoveTimeSlider" type="HSlider" parent="GUI/VBoxContainer/HSplitContainer/OptionsPanel/VBoxContainer"]
 layout_mode = 2
@@ -295,9 +306,32 @@ max_value = 0.1
 step = 0.001
 value = 0.05
 
+[node name="ProtocolLabel" type="Label" parent="GUI/VBoxContainer/HSplitContainer/OptionsPanel/VBoxContainer"]
+layout_mode = 2
+text = "Protocol"
+autowrap_mode = 3
+
+[node name="ProtocolChoice" type="MenuButton" parent="GUI/VBoxContainer/HSplitContainer/OptionsPanel/VBoxContainer"]
+layout_mode = 2
+text = "Kill Protocol"
+
+[node name="LinkExpLabel" type="Label" parent="GUI/VBoxContainer/HSplitContainer/OptionsPanel/VBoxContainer"]
+layout_mode = 2
+text = "Link condition"
+autowrap_mode = 3
+
+[node name="LinkExp" type="TextEdit" parent="GUI/VBoxContainer/HSplitContainer/OptionsPanel/VBoxContainer"]
+modulate = Color(0, 1, 0, 1)
+layout_mode = 2
+text = "{other.id < id}"
+placeholder_text = "{other.id < id}"
+scroll_fit_content_height = true
+
 [connection signal="id_pressed" from="GUI/VBoxContainer/MenuBarPanel/MenuBar/Preferences" to="." method="_on_preferences_id_pressed"]
 [connection signal="id_pressed" from="GUI/VBoxContainer/MenuBarPanel/MenuBar/View" to="." method="_on_view_id_pressed"]
 [connection signal="perspective_cam" from="GUI/VBoxContainer/HSplitContainer/3DView/MainViewContainer/MainView" to="." method="_on_perspective_cam"]
 [connection signal="perspective_cam" from="GUI/VBoxContainer/HSplitContainer/3DView/MainViewContainer/MainView/Camera3D" to="GUI/VBoxContainer/HSplitContainer/3DView/MainViewContainer/MainView" method="_on_camera_3d_perspective_cam"]
 [connection signal="pressed" from="GUI/VBoxContainer/HSplitContainer/OptionsPanel/VBoxContainer/Reset" to="." method="_on_reset_pressed"]
+[connection signal="pressed" from="GUI/VBoxContainer/HSplitContainer/OptionsPanel/VBoxContainer/KillInactive" to="." method="_on_kill_inactive_pressed"]
 [connection signal="value_changed" from="GUI/VBoxContainer/HSplitContainer/OptionsPanel/VBoxContainer/MoveTimeSlider" to="." method="_on_move_time_value_changed"]
+[connection signal="text_changed" from="GUI/VBoxContainer/HSplitContainer/OptionsPanel/VBoxContainer/LinkExp" to="." method="_on_look_exp_text_changed"]

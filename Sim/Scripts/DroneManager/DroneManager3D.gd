@@ -2,10 +2,10 @@
 extends Node3D
 class_name DroneManager3D
 
-
 @export var D := 0.3 : set = set_D
 @export var show_radius := false : set = _set_show_radius
 @export var movement_time := 0.05
+
 
 
 @onready var _drones = $Drones
@@ -15,13 +15,31 @@ class_name DroneManager3D
 @onready var _target_vis = $SearchTeam
 var _simulating := false # Act as a lock
 var _drone_manager : DroneManager
-var _protocol : BCProtocol
+var _protocol : Protocol
 var _next_id := 0
 var _search_drone : Drone3D = null
 var _search_target_pos : Vector2
 var _drone_scene := preload("res://Sim/Drone3D.tscn")
 var _request_reset := false
 var _hide_inactive := false
+
+
+# Link visualization
+var _link_filter = null
+var _link_reducer = null
+
+func set_protocol(index : int) -> void:
+	if index == 0:
+		_protocol = BCProtocol.new()
+		_protocol.D = D
+	elif index == 1:
+		_protocol = SaveProtocol.new()
+		_protocol.D = D
+		_protocol.base_pos = _base_detection.position
+		
+	for d in _drones.get_children():
+		d.drone.state = _protocol.migrate_state(d.drone.state)
+	
 
 func set_D(val : float) -> void:
 	if not is_inside_tree(): await ready
@@ -33,16 +51,20 @@ func set_D(val : float) -> void:
 	
 func hide_inactive(val : bool) -> void:
 	_hide_inactive = val
-	
 	for d in _drones.get_children():
-		if not d.get_drone().state["active"]:
+		if not d.drone.state["active"]:
 			d.visible = val
-	
+			
+func set_link_pipeline(op, red) -> void:
+	_link_filter = op
+	_link_reducer = red
+		
 func reset() -> void:
 	_request_reset = true
 	
 func _ready():
 	_protocol = BCProtocol.new()
+	_protocol.D = D
 	_drone_manager = DroneManager.new()
 	set_D(D)
 	
@@ -70,7 +92,7 @@ func _physics_process(delta):
 	# -- DRAWING --
 	_lines.clear() # clear previous lines
 	#_draw_all_connections(drones3D)
-	_draw_my_connections(drones3D)
+	_draw_links(drones3D)
 	
 	# Draw beacon from search_team target
 	if _search_drone:
@@ -88,27 +110,27 @@ func _simulation_loop(drones3D : Array[Drone3D]) -> void:
 	
 	# Append a new drone ?
 	var drones_near_base = _base_detection.get_overlapping_bodies().filter(
-		func(x): return x.get_drone().state["active"]
+		func(x): return x.drone.state["active"]
 	)
 	var closest_to_base = drones_near_base \
-		.map(func(x): return _base_detection.position.distance_squared_to(x.get_drone().state["position"])) \
+		.map(func(x): return _base_detection.position.distance_squared_to(x.drone.state["position"])) \
 		.min()
 	
 	# TODO : CORRECT BUG (2 drones launched) IF MOVEMENT TIME IS TOO LOW !!!!!
-	if drones_near_base.is_empty() or closest_to_base > 9*D*D:
+	if drones_near_base.is_empty() or closest_to_base >= 9*D*D:
 		await _deploy_new_drone().finished
 		
-	# simulates all drones
-	var drones : Array[Drone]
-	drones.assign(drones3D.map(func(x): return x.get_drone()))
-	_drone_manager.simulate(drones, _protocol)
-	
 	# move search drone
 	if _search_drone:
 		var offset : Vector2 = _search_target_pos - Vector2(_search_drone.position.x, _search_drone.position.z)
 		var dist = offset.length()
 		offset = offset.normalized() * clamp(dist, 0, D)
-		_search_drone.get_drone().state["position"] += Vector3(offset.x, 0, offset.y)
+		_search_drone.drone.state["position"] += Vector3(offset.x, 0, offset.y)
+		
+	# simulates all drones
+	var drones : Array[Drone]
+	drones.assign(drones3D.map(func(x): return x.drone))
+	_drone_manager.simulate(drones, _protocol)
 	
 	# Update visualisations
 	for d in drones3D:
@@ -119,62 +141,56 @@ func _simulation_loop(drones3D : Array[Drone3D]) -> void:
 	for t in tweens:
 		await t.finished
 		
-	# Hide inactive drone if necessary
+	# Post processing
 	for d in drones3D:
-		if not d.get_drone().state["active"]:
+		if d.drone.state["KILL"]:
+			d.queue_free()
+		elif not d.drone.state["active"]:
 			if d.visible != not _hide_inactive:
 				d.visible = not _hide_inactive
-		
+				
 	_simulating = false # Release lock
 	
-func _draw_all_connections(drones3D : Array[Drone3D]) -> void:
-	var points : Array[Vector3] = []
-	
-	var n := drones3D.size()
-	for i in range(n):
-		if not drones3D[i].get_drone().state["active"]:
-				continue
-		for j in range(i+1, n):
-			if not drones3D[j].get_drone().state["active"]:
-				continue
-			if drones3D[i].position.distance_squared_to(drones3D[j].position) <= 49*D*D:
-				points.append(drones3D[i].position)
-				points.append(drones3D[j].position)
-	
-	for d in _base_detection.get_overlapping_bodies():
-		if d.get_drone().state["active"]:
-			points.append(_base_detection.position)
-			points.append(d.position)
-	
-	# Generate graph mesh
-	if not points.is_empty():
-		_lines.create_graph(points, Color.CYAN)
 				
-func _draw_my_connections(drones3D : Array[Drone3D]) -> void:
+func _draw_links(drones3D : Array[Drone3D]) -> void:
 	var points : Array[Vector3] = []
+	
+	if _link_filter == null:
+		return
 	
 	for d in drones3D:
-		if not d.get_drone().state["active"]:
+		if not d.drone.state["active"]:
 			continue
-		var others : Array = d.get_neighbours() \
-		.filter(func(x): return x.id < d.id and x.get_drone().state["active"])
-		if others.is_empty():
+			
+		var others : Array = d.get_neighbours()
+		var others_state = others.map(func(x): return x.drone.state).filter(func(x): return _link_filter.call(d.drone.state, x))
+		
+		if others_state.is_empty():
 			continue
-		var max = others[0]
-		for o in others:
-			if o.id > max.id:
-				max = o
-		points.append(d.position)
-		points.append(max.position)
+		
+		if _link_reducer:
+			var state_choice = others_state.reduce(_link_reducer, others_state[0])
+			var choice = others.filter(func(x): return x.id == state_choice["id"])[0]
+			points.append(d.position)
+			points.append(choice.position)
+		else:
+			for d2 in others:
+				points.append(d.position)
+				points.append(d2.position)
 	
-	var base_n = _base_detection.get_overlapping_bodies().filter(func(x): return x.get_drone().state["active"])
-	if not base_n.is_empty():
-		var max = base_n[0]
-		for d in base_n:
-			if d.id > max.id:
-				max = d
-		points.append(_base_detection.position)
-		points.append(max.position)
+	var others = _base_detection.get_overlapping_bodies().filter(func(x): return x.drone.state["active"])
+	var others_state = others.map(func(x): return x.drone.state)
+	
+	if not others_state.is_empty():
+		if _link_reducer:
+			var state_choice = others_state.reduce(_link_reducer, others_state[0])
+			var choice = others.filter(func(x): return x.id == state_choice["id"])[0]
+			points.append(_base.position)
+			points.append(choice.position)
+		else:
+			for d in others:
+				points.append(_base.position)
+				points.append(d.position)
 	
 	# Generate graph mesh
 	if not points.is_empty():
@@ -199,22 +215,34 @@ func _set_show_radius(val : bool) -> void:
 		d.show_radius = show_radius
 	
 func _deploy_new_drone() -> Tween:
-	var d := _drone_scene.instantiate()
-	d.D = D
-	d.show_radius = show_radius
-	d.id = _next_id
+	var state = _protocol.get_default_state()
 	var target_pos = _base_detection.position
+	state["position"] = target_pos
+	state["id"] = _next_id
+	var d : Drone3D = _drone_scene.instantiate().init(_next_id, state, D)
+	d.show_radius = show_radius
 	
-	# deploy search team
+	# It's the search team
 	if _next_id == 0:
 		_search_drone = d
 		_search_target_pos = Vector2(target_pos.x, target_pos.z)
 		
 	_next_id += 1
-	d.position = _base.position
+	d.position = _base_detection.position + Vector3.DOWN * 7*D
 	_drones.add_child(d)
-	d.get_drone().state["position"] = target_pos
 	return d.move(movement_time)
+	
+func deploy_ground_drone_at(pos : Vector3) -> void:
+	var state = _protocol.get_default_state()
+	var target_pos = pos + Vector3(0,_base_detection.position.y, 0)
+	state["position"] = target_pos
+	state["id"] = _next_id
+	var d : Drone3D = _drone_scene.instantiate().init(_next_id, state, D)
+	d.show_radius = show_radius
+	_next_id += 1
+	d.position = target_pos
+	_drones.add_child(d)
+	
 	
 func set_search_target(pos : Vector2) -> void:
 	if _search_drone:
@@ -222,6 +250,9 @@ func set_search_target(pos : Vector2) -> void:
 		_target_vis.position = Vector3(pos.x, _base.position.y, pos.y)
 	
 			
-			
+func kill_inactive() -> void:
+	for d in _drones.get_children():
+		if not d.drone.state["active"]:
+			d.queue_free()
 	
 
