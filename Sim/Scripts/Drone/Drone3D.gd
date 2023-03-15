@@ -103,7 +103,7 @@ func _update_visuals() -> void:
 	$Visualization.visible = show_radius and active
 	# Change color
 	if not active:
-		color = Color.DIM_GRAY
+		color = Color.LIGHT_GRAY
 	elif warn:
 		color = Color.RED
 	elif border:

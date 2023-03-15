@@ -117,7 +117,7 @@ func _simulation_loop(drones3D : Array[Drone3D]) -> void:
 		.min()
 	
 	# TODO : CORRECT BUG (2 drones launched) IF MOVEMENT TIME IS TOO LOW !!!!!
-	if drones_near_base.is_empty() or closest_to_base >= 9*D*D:
+	if drones_near_base.is_empty() or closest_to_base > 9*D*D:
 		await _deploy_new_drone().finished
 		
 	# move search drone
@@ -162,8 +162,9 @@ func _draw_links(drones3D : Array[Drone3D]) -> void:
 		if not d.drone.state["active"]:
 			continue
 			
-		var others : Array = d.get_neighbours()
-		var others_state = others.map(func(x): return x.drone.state).filter(func(x): return _link_filter.call(d.drone.state, x))
+		var others : Array = d.get_neighbours().filter(func(x): return x.drone.state["active"]) \
+		.filter(func(x): return _link_filter.call(d.drone.state, x.drone.state))
+		var others_state = others.map(func(x): return x.drone.state)
 		
 		if others_state.is_empty():
 			continue
