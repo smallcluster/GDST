@@ -13,6 +13,9 @@ func get_default_state() -> Dictionary:
 		"active" : true
 	}
 	
+func get_vision_radius() -> float:
+	return 10.0
+	
 # -- FINAL FUNC --
 func migrate_state(state : Dictionary) -> Dictionary:
 	var new_state := get_default_state()

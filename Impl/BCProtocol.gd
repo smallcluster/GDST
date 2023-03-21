@@ -13,7 +13,7 @@ func get_default_state() -> Dictionary:
 		"position": Vector3.ZERO,
 		"light": false
 	}
-
+	
 func look(state : Dictionary, neighbours : Array[Drone]) -> Array:
 	var visible := neighbours.filter(func(x): return x.state["active"] and x.state["id"] < state["id"])
 	return visible.map(func(x): return {

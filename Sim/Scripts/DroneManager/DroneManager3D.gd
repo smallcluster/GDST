@@ -46,8 +46,13 @@ func set_protocol(index : int) -> void:
 		_protocol = SaveProtocol.new()
 		_protocol.D = D
 		_protocol.base_pos = _base_detection.position
+	elif index == 2:
+		_protocol = FinalProtocol.new()
+		_protocol.D = D
+		_protocol.base_pos = _base_detection.position
 		
 	for d in _drones.get_children():
+		d.use_cylinder = index == 2
 		d.drone.state = _protocol.migrate_state(d.drone.state)
 	
 
@@ -97,6 +102,8 @@ func _physics_process(delta):
 	# Simulate
 	var drones3D : Array[Drone3D]
 	drones3D.assign(_drones.get_children())
+	
+
 	
 	if _run_simulation or _run_one_step:
 		_simulation_loop(drones3D)
@@ -236,6 +243,8 @@ func _deploy_new_drone() -> Tween:
 	var d : Drone3D = _drone_scene.instantiate().init(_next_id, state, D)
 	d.show_radius = show_radius
 	
+	d.use_cylinder = _protocol is FinalProtocol
+	
 	# It's the search team
 	if _next_id == 0:
 		_search_drone = d
@@ -247,14 +256,20 @@ func _deploy_new_drone() -> Tween:
 	return d.move(movement_time)
 	
 func deploy_ground_drone_at(pos : Vector3) -> void:
+	
+	while _simulating:
+		await get_tree().physics_frame
+		
 	var state = _protocol.get_default_state()
 	var target_pos = pos + Vector3(0,_base_detection.position.y, 0)
 	state["position"] = target_pos
 	state["id"] = _next_id
 	var d : Drone3D = _drone_scene.instantiate().init(_next_id, state, D)
 	d.show_radius = show_radius
+	d.use_cylinder = _protocol is FinalProtocol
 	_next_id += 1
 	d.position = target_pos
+	
 	_drones.add_child(d)
 	
 	

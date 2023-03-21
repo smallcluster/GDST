@@ -1,10 +1,11 @@
 extends Protocol
-class_name SaveProtocol
+class_name FinalProtocol
 
 @export var D : float = 0.3
 @export var base_pos : Vector3 = Vector3.ZERO
-
 var choice_reduction : Callable = func(acc, x): return acc if acc["id"] > x["id"] else x
+
+enum LAYER_TYPE {CONNEXION, RETURN, STACK}
 
 #-------------------------------------------------------------------------------
 
@@ -18,9 +19,17 @@ func get_default_state() -> Dictionary:
 		"border": false,
 		"connectedId" : -1
 	}
-
+	
+func _flat_dist_sq(p1, p2) -> float:
+	return (p1.x-p2.x)*(p1.x-p2.x)+(p1.z-p2.z)*(p1.z-p2.z)
+	
+	
 func look(state : Dictionary, neighbours : Array[Drone]) -> Array:
+	var depth := 4 * D
+	var Dmax := 7*D
+	
 	var visible := neighbours.filter(func(x): return x.state["active"])
+	
 	return visible.map(func(x): return {
 		"id" : x.state["id"],
 		"position" : x.state["position"],
@@ -29,12 +38,12 @@ func look(state : Dictionary, neighbours : Array[Drone]) -> Array:
 		"connectedId" : x.state["connectedId"]
 	})
 	
-	
 func compute(state : Dictionary, obs : Array) -> Dictionary:
 	
 	var Dmax := 7 * D
 	var Dc := 2 * D
 	var Dp := 7*D - D
+	var depth := 4 * D
 	
 	var return_height = base_pos.y + 2*D
 	
@@ -57,16 +66,53 @@ func compute(state : Dictionary, obs : Array) -> Dictionary:
 
 	# -- New Protocol:
 	
-	#- Going back to the base
-	if abs(state["position"].y - return_height) < 0.1:
+	# detect layers
+	var self_layer = obs.filter(func(x): return abs(x["position"].y - pos.y) < 0.01	)
+	var layer1 = obs.filter(func(x): return abs(x["position"].y - (pos.y-depth/4)) < 0.01)
+	var layer2 = obs.filter(func(x): return abs(x["position"].y - (pos.y-depth/2)) < 0.01)
+	var layer3 = obs.filter(func(x): return abs(x["position"].y - (pos.y-3*depth/4)) < 0.01)
+	var layer4 = obs.filter(func(x): return abs(x["position"].y - (pos.y-depth)) < 0.01)
+	
+	
+	var self_layer_collision = not self_layer.filter(func(x): return x["id"] < id).all(func(x): return _flat_dist_sq(x["position"], pos) > D*D)
+	
+	# Look below 
+	var filter = func(x): return _flat_dist_sq(x["position"], pos) < 4*D*D
+	var layer1_warn = layer1.filter(filter)
+	var layer2_warn = layer2.filter(filter)
+	var layer3_warn = layer1.filter(filter)
+	var layer4_warn = layer2.filter(filter)
+	
+	# 3 cases : connexion layer, return layer, stack layers
+	var layer_type = LAYER_TYPE.STACK
+	
+	if layer1.is_empty() and layer2.is_empty() and layer3.is_empty() and layer4.is_empty():
+		layer_type = LAYER_TYPE.CONNEXION
+	elif layer3.is_empty() and layer4.is_empty() and layer1.is_empty() and not layer2.is_empty():
+		layer_type = LAYER_TYPE.RETURN
+
+
+	# go up
+	if self_layer_collision or not layer1_warn.is_empty():
+		new_state["position"] = pos + Vector3.UP * D
+		return new_state
 		
+	if layer_type == LAYER_TYPE.STACK and layer1_warn.is_empty() and layer2_warn.is_empty():
+		new_state["position"] = pos - Vector3.UP * D
+		return new_state
+		
+	#- Going back to the base
+	if layer_type == LAYER_TYPE.RETURN:
 		# Already near base !
 		if pos.distance_squared_to(base_pos) <= 25*D*D:
 			new_state["KILL"] = true
 			return new_state
 			
 		# look drones below !
-		obs = obs.filter(func(x): return abs(x["position"].y - return_height) >= 0.1 )
+		if layer1.is_empty():
+			obs = layer2
+		else:
+			obs = layer1
 		
 		var on_border = obs.all(func(x): return x["border"])
 		var target
@@ -84,7 +130,7 @@ func compute(state : Dictionary, obs : Array) -> Dictionary:
 	
 	
 	#- Going to search team
-	obs = obs.filter(func(x): return abs(x["position"].y - return_height) >= 0.1 )
+	obs = self_layer
 	
 	var connected_to_me = obs.filter(func(x): return x["connectedId"] == id and x["id"] > id)
 	
@@ -113,8 +159,7 @@ func compute(state : Dictionary, obs : Array) -> Dictionary:
 	# Collision ? => return to base
 	for o in obs:
 		if pos.distance_squared_to(o["position"]) <= D*D:
-			new_state["position"] = pos
-			new_state["position"].y = return_height
+			new_state["position"] = pos + Vector3.UP * D # goes up one layer
 			return new_state
 	
 	# Prefer a target that isn't dangerous

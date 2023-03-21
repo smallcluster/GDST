@@ -12,7 +12,6 @@ class_name Drone3D
 @export var color : Color = Color(0.05, 0.05, 0.05): set = _set_color
 
 @export var use_cylinder : bool = false : set = _set_use_cylinder
-@export var cylinder_depth : float = 0.6 : set = _set_cylinder_depth
 
 var drone : Drone
 
@@ -63,11 +62,6 @@ func _set_use_cylinder(val : bool) -> void:
 	if not is_inside_tree(): await ready
 	use_cylinder = val
 	_update_vision_shape()
-	
-func _set_cylinder_depth(val: float) -> void:
-	if not is_inside_tree(): await ready
-	cylinder_depth = val
-	_update_vision_shape()
 
 
 func _set_D(val : float) -> void:
@@ -79,11 +73,12 @@ func _update_vision_shape() -> void:
 	var Dmax := 7 * D
 	var Dc := 2 * D
 	var Dp := Dmax - D
+	var cylinder_depth = 4 * D
 	
 	if use_cylinder:
 		_set_cylinders(Dmax, Dp, Dc, D)
 		_detection_shape.shape = CylinderShape3D.new()
-		_detection_shape.shape.radius = Dmax
+		_detection_shape.shape.radius = Dmax+D
 		_detection_shape.shape.height = cylinder_depth
 		_detection_shape.position = Vector3(0,-cylinder_depth/2,0)
 	else:
@@ -150,6 +145,7 @@ func _set_circles(Dmax : float, Dp : float, Dc : float, D : float) -> void:
 	vis_root.add_child(MeshCreator.create_circle(D, Color.RED))
 	
 func _set_cylinders(Dmax : float, Dp : float, Dc : float, D : float) -> void:
+	var cylinder_depth = 4*D
 	var vis_root = $Visualization
 	for c in vis_root.get_children():
 		c.queue_free()
