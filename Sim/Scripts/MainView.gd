@@ -14,6 +14,12 @@ func _process(delta):
 	_floor.position.z = _cam.global_position.z
 	
 # -- GUI EVENTS --
+func run_simulation(running : bool) -> void:
+	_drone_manager.run_simulation(running)
+	
+func run_one_simulation_step() -> void:
+	_drone_manager.run_one_simulation_step()
+
 func show_radius(button_pressed):
 	_drone_manager.show_radius = button_pressed
 	

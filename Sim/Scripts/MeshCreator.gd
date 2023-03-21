@@ -50,3 +50,47 @@ static func create_circle(radius : float, color : Color, resolution : int = 32) 
 	mat.no_depth_test = true
 	mat.render_priority = 10
 	return mesh_inst
+	
+static func create_cylinder(radius : float, height : float, color : Color, resolution : int = 32) -> MeshInstance3D:
+	var mesh_inst := MeshInstance3D.new()
+	var mesh := ImmediateMesh.new()
+	var mat := ORMMaterial3D.new()
+	mesh_inst.mesh = mesh
+	mesh_inst.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	mesh.surface_begin(Mesh.PRIMITIVE_LINES, mat)
+	
+	var cursor := Vector3(radius, 0 , 0)
+	var rot := (360.0 * PI) / (resolution * 180.0)
+	var dy := Vector3(0,-height,0)
+	
+	for i in range(resolution):
+		var rotated_cursor := cursor.rotated(Vector3(0, 1, 0), rot)
+		# Top
+		mesh.surface_add_vertex(cursor)
+		mesh.surface_add_vertex(rotated_cursor)
+		# Bottom
+		mesh.surface_add_vertex(cursor+dy)
+		mesh.surface_add_vertex(rotated_cursor+dy)
+		
+		cursor = rotated_cursor
+		
+	# sides
+	mesh.surface_add_vertex(Vector3(radius, 0, 0))
+	mesh.surface_add_vertex(Vector3(radius, -height, 0))
+	
+	mesh.surface_add_vertex(Vector3(-radius, 0, 0))
+	mesh.surface_add_vertex(Vector3(-radius, -height, 0))
+	
+	mesh.surface_add_vertex(Vector3(0, 0, radius))
+	mesh.surface_add_vertex(Vector3(0, -height, radius))
+	
+	mesh.surface_add_vertex(Vector3(0, 0, -radius))
+	mesh.surface_add_vertex(Vector3(0, -height, -radius))
+		
+	mesh.surface_end()
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.albedo_color = color
+	mat.disable_receive_shadows = true
+	mat.no_depth_test = true
+	mat.render_priority = 10
+	return mesh_inst

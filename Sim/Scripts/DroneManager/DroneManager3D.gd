@@ -23,10 +23,20 @@ var _drone_scene := preload("res://Sim/Drone3D.tscn")
 var _request_reset := false
 var _hide_inactive := false
 
+var _run_simulation := true
+var _run_one_step := false
+
 
 # Link visualization
 var _link_filter = null
 var _link_reducer = null
+
+func run_simulation(running : bool) -> void:
+	_run_simulation = running
+	
+func run_one_simulation_step() -> void:
+	_run_one_step = true
+	_run_simulation = false
 
 func set_protocol(index : int) -> void:
 	if index == 0:
@@ -87,7 +97,10 @@ func _physics_process(delta):
 	# Simulate
 	var drones3D : Array[Drone3D]
 	drones3D.assign(_drones.get_children())
-	_simulation_loop(drones3D)
+	
+	if _run_simulation or _run_one_step:
+		_simulation_loop(drones3D)
+		_run_one_step = false
 	
 	# -- DRAWING --
 	_lines.clear() # clear previous lines

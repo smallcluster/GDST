@@ -7,6 +7,10 @@ extends CanvasLayer
 
 var _default_filter = func(s1, s2): return s2["id"] < s1["id"] and s1["active"] and s2["active"] and abs(s1["position"].y-s2["position"].y) < 0.1
 
+
+var _play_simulation := true
+
+
 # -- GUI EVENTS --
 
 func _ready():
@@ -30,9 +34,6 @@ func _process(delta):
 func _on_move_time_value_changed(value):
 	mainView.move_time_value_changed(value)
 	$GUI/VBoxContainer/HSplitContainer/OptionsPanel/VBoxContainer/MoveTimeLabel.text = "Movement time: "+str(round(value*1000))+"ms"
-	
-func _on_reset_pressed():
-	mainView.reset_simulation()
 
 func _on_perspective_cam():
 	var items = $GUI/VBoxContainer/MenuBarPanel/MenuBar/View
@@ -152,3 +153,31 @@ func _on_look_exp_text_changed():
 
 func _on_kill_inactive_pressed():
 	mainView.kill_inactive()
+
+
+func _on_play_button_pressed():
+	_play_simulation = not _play_simulation
+	mainView.run_simulation(_play_simulation)
+	_update_play_button()
+	
+func _update_play_button():
+	var button := $"GUI/VBoxContainer/HSplitContainer/3DView/PlaybackPanel/HBoxContainer/PlayButton"
+	if _play_simulation:
+		button.icon = load("res://Sim/GUI/Icons/pause.svg")
+	else:
+		button.icon = load("res://Sim/GUI/Icons/play.svg")
+	
+
+
+func _on_step_button_pressed():
+	mainView.run_one_simulation_step()
+	_play_simulation = false
+	_update_play_button()
+
+
+func _on_reset_button_pressed():
+	mainView.reset_simulation()
+	mainView.run_simulation(false)
+	_play_simulation = false
+	_update_play_button()
+	

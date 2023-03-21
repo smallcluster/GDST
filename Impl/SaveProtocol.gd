@@ -60,7 +60,7 @@ func compute(state : Dictionary, obs : Array) -> Dictionary:
 	if abs(state["position"].y - return_height) < 0.1:
 		
 		# Already near base !
-		if pos.distance_squared_to(base_pos) < 49*D*D:
+		if pos.distance_squared_to(base_pos) <= 25*D*D:
 			new_state["KILL"] = true
 			return new_state
 			

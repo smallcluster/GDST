@@ -1,4 +1,4 @@
-[gd_scene load_steps=24 format=3 uid="uid://bu6x4bfchxkdv"]
+[gd_scene load_steps=27 format=3 uid="uid://bu6x4bfchxkdv"]
 
 [ext_resource type="Script" path="res://Sim/Scripts/CamControls.gd" id="1_d6xna"]
 [ext_resource type="Script" path="res://Sim/Scripts/3DPlayground.gd" id="1_o65i0"]
@@ -9,6 +9,9 @@
 [ext_resource type="Texture2D" uid="uid://c4eca4yln2mr0" path="res://Sim/Textures/_1m x 1m_dark.png" id="3_2bnwl"]
 [ext_resource type="Script" path="res://Sim/Scripts/Lines3D.gd" id="4_2kxkj"]
 [ext_resource type="Texture2D" uid="uid://b373k862pdx4a" path="res://Sim/Textures/_1m x 1m_orange.png" id="5_5xvjl"]
+[ext_resource type="Texture2D" uid="uid://c4ftbgjy762m7" path="res://Sim/GUI/Icons/pause.svg" id="10_dds0u"]
+[ext_resource type="Texture2D" uid="uid://b5h7da0s2m7by" path="res://Sim/GUI/Icons/step.svg" id="11_cyna1"]
+[ext_resource type="Texture2D" uid="uid://btedf1m4d1fvh" path="res://Sim/GUI/Icons/stop.svg" id="12_qdey6"]
 
 [sub_resource type="Theme" id="Theme_m7sw8"]
 default_font_size = 20
@@ -38,7 +41,7 @@ uv1_world_triplanar = true
 material = SubResource("StandardMaterial3D_hwn4p")
 size = Vector2(500, 500)
 
-[sub_resource type="SphereShape3D" id="SphereShape3D_o8lye"]
+[sub_resource type="SphereShape3D" id="SphereShape3D_082f4"]
 radius = 2.1
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_j24ev"]
@@ -161,7 +164,7 @@ stretch = true
 handle_input_locally = false
 msaa_3d = 2
 screen_space_aa = 1
-size = Vector2i(2, 2)
+size = Vector2i(1678, 1040)
 render_target_update_mode = 4
 script = ExtResource("2_3aya7")
 
@@ -196,7 +199,7 @@ collision_layer = 2
 collision_mask = 2
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="GUI/VBoxContainer/HSplitContainer/3DView/MainViewContainer/MainView/3DDroneManager/Base/Detection"]
-shape = SubResource("SphereShape3D_o8lye")
+shape = SubResource("SphereShape3D_082f4")
 
 [node name="Visualization" type="Node3D" parent="GUI/VBoxContainer/HSplitContainer/3DView/MainViewContainer/MainView/3DDroneManager/Base/Detection"]
 visible = false
@@ -273,16 +276,51 @@ text = "60 FPS"
 horizontal_alignment = 1
 vertical_alignment = 1
 
+[node name="PlaybackPanel" type="PanelContainer" parent="GUI/VBoxContainer/HSplitContainer/3DView"]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -100.0
+offset_top = -80.0
+offset_right = 100.0
+offset_bottom = -16.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="HBoxContainer" type="HBoxContainer" parent="GUI/VBoxContainer/HSplitContainer/3DView/PlaybackPanel"]
+layout_mode = 2
+alignment = 1
+
+[node name="PlayButton" type="Button" parent="GUI/VBoxContainer/HSplitContainer/3DView/PlaybackPanel/HBoxContainer"]
+custom_minimum_size = Vector2(64, 64)
+layout_mode = 2
+icon = ExtResource("10_dds0u")
+icon_alignment = 1
+expand_icon = true
+
+[node name="StepButton" type="Button" parent="GUI/VBoxContainer/HSplitContainer/3DView/PlaybackPanel/HBoxContainer"]
+custom_minimum_size = Vector2(64, 64)
+layout_mode = 2
+icon = ExtResource("11_cyna1")
+icon_alignment = 1
+expand_icon = true
+
+[node name="ResetButton" type="Button" parent="GUI/VBoxContainer/HSplitContainer/3DView/PlaybackPanel/HBoxContainer"]
+custom_minimum_size = Vector2(64, 64)
+layout_mode = 2
+icon = ExtResource("12_qdey6")
+icon_alignment = 1
+expand_icon = true
+
 [node name="OptionsPanel" type="PanelContainer" parent="GUI/VBoxContainer/HSplitContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 
 [node name="VBoxContainer" type="VBoxContainer" parent="GUI/VBoxContainer/HSplitContainer/OptionsPanel"]
 layout_mode = 2
-
-[node name="Reset" type="Button" parent="GUI/VBoxContainer/HSplitContainer/OptionsPanel/VBoxContainer"]
-layout_mode = 2
-text = "Reset"
 
 [node name="KillInactive" type="Button" parent="GUI/VBoxContainer/HSplitContainer/OptionsPanel/VBoxContainer"]
 layout_mode = 2
@@ -331,7 +369,9 @@ scroll_fit_content_height = true
 [connection signal="id_pressed" from="GUI/VBoxContainer/MenuBarPanel/MenuBar/View" to="." method="_on_view_id_pressed"]
 [connection signal="perspective_cam" from="GUI/VBoxContainer/HSplitContainer/3DView/MainViewContainer/MainView" to="." method="_on_perspective_cam"]
 [connection signal="perspective_cam" from="GUI/VBoxContainer/HSplitContainer/3DView/MainViewContainer/MainView/Camera3D" to="GUI/VBoxContainer/HSplitContainer/3DView/MainViewContainer/MainView" method="_on_camera_3d_perspective_cam"]
-[connection signal="pressed" from="GUI/VBoxContainer/HSplitContainer/OptionsPanel/VBoxContainer/Reset" to="." method="_on_reset_pressed"]
+[connection signal="pressed" from="GUI/VBoxContainer/HSplitContainer/3DView/PlaybackPanel/HBoxContainer/PlayButton" to="." method="_on_play_button_pressed"]
+[connection signal="pressed" from="GUI/VBoxContainer/HSplitContainer/3DView/PlaybackPanel/HBoxContainer/StepButton" to="." method="_on_step_button_pressed"]
+[connection signal="pressed" from="GUI/VBoxContainer/HSplitContainer/3DView/PlaybackPanel/HBoxContainer/ResetButton" to="." method="_on_reset_button_pressed"]
 [connection signal="pressed" from="GUI/VBoxContainer/HSplitContainer/OptionsPanel/VBoxContainer/KillInactive" to="." method="_on_kill_inactive_pressed"]
 [connection signal="value_changed" from="GUI/VBoxContainer/HSplitContainer/OptionsPanel/VBoxContainer/MoveTimeSlider" to="." method="_on_move_time_value_changed"]
 [connection signal="text_changed" from="GUI/VBoxContainer/HSplitContainer/OptionsPanel/VBoxContainer/LinkExp" to="." method="_on_look_exp_text_changed"]
