@@ -5,8 +5,6 @@ class_name FinalProtocol
 @export var base_pos : Vector3 = Vector3.ZERO
 var choice_reduction : Callable = func(acc, x): return acc if acc["id"] > x["id"] else x
 
-enum LAYER_TYPE {CONNEXION, RETURN, STACK}
-
 #-------------------------------------------------------------------------------
 
 func get_default_state() -> Dictionary:
@@ -17,7 +15,8 @@ func get_default_state() -> Dictionary:
 		"position": Vector3.ZERO,
 		"light": false,
 		"border": false,
-		"connectedId" : -1
+		"connectedId" : -1,
+		"layer" : 0
 	}
 	
 func _flat_dist_sq(p1, p2) -> float:
@@ -25,9 +24,6 @@ func _flat_dist_sq(p1, p2) -> float:
 	
 	
 func look(state : Dictionary, neighbours : Array[Drone]) -> Array:
-	var depth := 4 * D
-	var Dmax := 7*D
-	
 	var visible := neighbours.filter(func(x): return x.state["active"])
 	
 	return visible.map(func(x): return {
@@ -43,7 +39,7 @@ func compute(state : Dictionary, obs : Array) -> Dictionary:
 	var Dmax := 7 * D
 	var Dc := 2 * D
 	var Dp := 7*D - D
-	var depth := 4 * D
+	var depth := 5 * D
 	
 	var return_height = base_pos.y + 2*D
 	
@@ -68,13 +64,13 @@ func compute(state : Dictionary, obs : Array) -> Dictionary:
 	
 	# detect layers
 	var self_layer = obs.filter(func(x): return abs(x["position"].y - pos.y) < 0.01	)
-	var layer1 = obs.filter(func(x): return abs(x["position"].y - (pos.y-depth/4)) < 0.01)
-	var layer2 = obs.filter(func(x): return abs(x["position"].y - (pos.y-depth/2)) < 0.01)
-	var layer3 = obs.filter(func(x): return abs(x["position"].y - (pos.y-3*depth/4)) < 0.01)
-	var layer4 = obs.filter(func(x): return abs(x["position"].y - (pos.y-depth)) < 0.01)
+	var layer1 = obs.filter(func(x): return abs(x["position"].y - (pos.y-depth/5)) < 0.01)
+	var layer2 = obs.filter(func(x): return abs(x["position"].y - (pos.y-2*depth/5)) < 0.01)
+	var layer3 = obs.filter(func(x): return abs(x["position"].y - (pos.y-3*depth/5)) < 0.01)
+	var layer4 = obs.filter(func(x): return abs(x["position"].y - (pos.y-4*depth/5)) < 0.01)
+	var layer5 = obs.filter(func(x): return abs(x["position"].y - (pos.y-depth)) < 0.01)
 	
-	
-	var self_layer_collision = not self_layer.filter(func(x): return x["id"] < id).all(func(x): return _flat_dist_sq(x["position"], pos) > D*D)
+	var self_layer_collision = not self_layer.filter(func(x): return x["id"] < id).all(func(x): return _flat_dist_sq(x["position"], pos) > 4*D*D)
 	
 	# Look below 
 	var filter = func(x): return _flat_dist_sq(x["position"], pos) < 4*D*D
@@ -83,36 +79,53 @@ func compute(state : Dictionary, obs : Array) -> Dictionary:
 	var layer3_warn = layer1.filter(filter)
 	var layer4_warn = layer2.filter(filter)
 	
-	# 3 cases : connexion layer, return layer, stack layers
-	var layer_type = LAYER_TYPE.STACK
-	
-	if layer1.is_empty() and layer2.is_empty() and layer3.is_empty() and layer4.is_empty():
-		layer_type = LAYER_TYPE.CONNEXION
-	elif layer3.is_empty() and layer4.is_empty() and layer1.is_empty() and not layer2.is_empty():
-		layer_type = LAYER_TYPE.RETURN
-
 
 	# go up
-	if self_layer_collision or not layer1_warn.is_empty():
+	if self_layer_collision or state["layer"] == 1 or not layer1_warn.is_empty():
 		new_state["position"] = pos + Vector3.UP * D
+		new_state["layer"] += 1
 		return new_state
 		
-	if layer_type == LAYER_TYPE.STACK and layer1_warn.is_empty() and layer2_warn.is_empty():
+	
+	#TODO: OPTIMIZE DRONE FOLLOWING ON UPPER LAYERS 
+	
+	# go down
+	if state["layer"] > 2 and ((layer1_warn.is_empty() and layer2_warn.is_empty() and not layer1.filter(func(x): return _flat_dist_sq(x["position"], pos) < Dp).is_empty()) or (layer1.is_empty() and layer2.is_empty())):
 		new_state["position"] = pos - Vector3.UP * D
+		new_state["layer"] -= 1
 		return new_state
+		
+		
+		
+		
+	if state["layer"] > 2:
+		
+		# follow the closest underself
+		layer1.append_array(layer2)
+		var choice = layer1.reduce(func(acc,x): return x if _flat_dist_sq(x["position"], pos) < _flat_dist_sq(acc["position"], pos) else acc, layer1[0])
+		var target = choice["position"]
+		target.y = pos.y
+		new_state["position"] = pos +(target-pos).normalized() * D
+		return new_state
+		
+		
 		
 	#- Going back to the base
-	if layer_type == LAYER_TYPE.RETURN:
+	if state["layer"] == 2:
 		# Already near base !
 		if pos.distance_squared_to(base_pos) <= 25*D*D:
 			new_state["KILL"] = true
 			return new_state
 			
-		# look drones below !
-		if layer1.is_empty():
-			obs = layer2
-		else:
-			obs = layer1
+		# follow the closest neighbours
+		if layer2.is_empty():
+			var choice = self_layer.reduce(func(acc,x): return x if _flat_dist_sq(x["position"], pos) < _flat_dist_sq(acc["position"], pos) else acc, self_layer[0])
+			var target = choice["position"]
+			new_state["position"] = pos +(target-pos).normalized() * D
+			return new_state
+		
+		# look drones below !	
+		obs = layer2
 		
 		var on_border = obs.all(func(x): return x["border"])
 		var target
@@ -123,7 +136,7 @@ func compute(state : Dictionary, obs : Array) -> Dictionary:
 			var candidates = obs.filter(func(x): return not x["border"])
 			target = candidates.reduce(func(acc, x): return acc if acc["id"] > x["id"] else x, candidates[0])
 		var new_pos = target["position"]
-		new_pos.y = return_height
+		new_pos.y = pos.y
 		var vd = (new_pos - pos)
 		new_state["position"] = pos + vd.normalized() * D
 		return new_state
@@ -160,6 +173,7 @@ func compute(state : Dictionary, obs : Array) -> Dictionary:
 	for o in obs:
 		if pos.distance_squared_to(o["position"]) <= D*D:
 			new_state["position"] = pos + Vector3.UP * D # goes up one layer
+			new_state["layer"] += 1
 			return new_state
 	
 	# Prefer a target that isn't dangerous

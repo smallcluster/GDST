@@ -73,7 +73,7 @@ func _update_vision_shape() -> void:
 	var Dmax := 7 * D
 	var Dc := 2 * D
 	var Dp := Dmax - D
-	var cylinder_depth = 4 * D
+	var cylinder_depth = 5 * D
 	
 	if use_cylinder:
 		_set_cylinders(Dmax, Dp, Dc, D)
@@ -145,7 +145,7 @@ func _set_circles(Dmax : float, Dp : float, Dc : float, D : float) -> void:
 	vis_root.add_child(MeshCreator.create_circle(D, Color.RED))
 	
 func _set_cylinders(Dmax : float, Dp : float, Dc : float, D : float) -> void:
-	var cylinder_depth = 4*D
+	var cylinder_depth = 5*D
 	var vis_root = $Visualization
 	for c in vis_root.get_children():
 		c.queue_free()
