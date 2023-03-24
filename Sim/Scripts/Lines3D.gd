@@ -6,8 +6,8 @@ func create_line(start : Vector3, end : Vector3, color : Color = Color.WHITE) ->
 	var mesh_inst := MeshCreator.create_line(start, end, color)
 	add_child(mesh_inst)
 	
-func create_graph(points : Array[Vector3], color : Color = Color.WHITE) -> void:
-	var mesh_int := MeshCreator.create_graph(points, color)
+func create_graph(points : Array[Vector3], color : Color = Color.WHITE, directed : bool = false, size : float = 0.3) -> void:
+	var mesh_int := MeshCreator.create_graph(points, color, directed, size)
 	add_child(mesh_int)
 	
 func clear() -> void:

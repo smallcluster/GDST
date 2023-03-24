@@ -80,11 +80,11 @@ func reset_simulation() -> void:
 func hide_inactive_drones(val : bool) -> void:
 	_drone_manager.hide_inactive(val)
 	
-func set_link_pipeline(op, red) -> void:
-	_drone_manager.set_link_pipeline(op, red)
-	
 func kill_inactive() -> void:
 	_drone_manager.kill_inactive()
+	
+func draw_directed_graph(val : bool) -> void:
+	_drone_manager.draw_directed_graph(val)
 	
 
 func _on_camera_3d_perspective_cam() -> void:

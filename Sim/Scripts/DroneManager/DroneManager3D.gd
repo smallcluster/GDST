@@ -22,14 +22,12 @@ var _search_target_pos : Vector2
 var _drone_scene := preload("res://Sim/Drone3D.tscn")
 var _request_reset := false
 var _hide_inactive := false
-
 var _run_simulation := true
 var _run_one_step := false
-
-
-# Link visualization
-var _link_filter = null
-var _link_reducer = null
+var _kill_inactive := false
+var _deploy_ground_pos = null
+var _draw_directed_graph := false
+var _switch_protocol := -1
 
 func run_simulation(running : bool) -> void:
 	_run_simulation = running
@@ -39,22 +37,7 @@ func run_one_simulation_step() -> void:
 	_run_simulation = false
 
 func set_protocol(index : int) -> void:
-	if index == 0:
-		_protocol = BCProtocol.new()
-		_protocol.D = D
-	elif index == 1:
-		_protocol = SaveProtocol.new()
-		_protocol.D = D
-		_protocol.base_pos = _base_detection.position
-	elif index == 2:
-		_protocol = FinalProtocol.new()
-		_protocol.D = D
-		_protocol.base_pos = _base_detection.position
-		
-	for d in _drones.get_children():
-		d.use_cylinder = index == 2
-		d.drone.state = _protocol.migrate_state(d.drone.state)
-	
+	_switch_protocol = index
 
 func set_D(val : float) -> void:
 	if not is_inside_tree(): await ready
@@ -69,10 +52,6 @@ func hide_inactive(val : bool) -> void:
 	for d in _drones.get_children():
 		if not d.drone.state["active"]:
 			d.visible = val
-			
-func set_link_pipeline(op, red) -> void:
-	_link_filter = op
-	_link_reducer = red
 		
 func reset() -> void:
 	_request_reset = true
@@ -87,7 +66,9 @@ func _physics_process(delta):
 	if Engine.is_editor_hint():
 		return
 		
-	# -- UPDATE --
+	_lines.clear() # clear previous drawing
+		
+	# --- UPDATE ---
 	
 	# reset simulation
 	if _request_reset and not _simulating:	
@@ -98,20 +79,57 @@ func _physics_process(delta):
 			d.queue_free()
 			_search_drone = null
 		return
+		
+	# Manual drone deployement
+	if _deploy_ground_pos != null and _next_id > 0 and not _simulating:
+		var state = _protocol.get_default_state()
+		var target_pos = _deploy_ground_pos + Vector3(0,_base_detection.position.y, 0)
+		state["position"] = target_pos
+		state["id"] = _next_id
+		var d : Drone3D = _drone_scene.instantiate().init(_next_id, state, D)
+		d.show_radius = show_radius
+		d.use_cylinder = _protocol is FinalProtocol
+		_next_id += 1
+		d.position = target_pos
+		_drones.add_child(d)
+		_deploy_ground_pos = null
+		
+	# kill inactive
+	if _kill_inactive and not _simulating:
+		_kill_inactive = false
+		for d in _drones.get_children():
+			if not d.drone.state["active"]:
+				d.queue_free()
+		return
+		
+	# Request switch protocol
+	if _switch_protocol != -1 and not _simulating:
+		if _switch_protocol == 0:
+			_protocol = BCProtocol.new()
+			_protocol.D = D
+		elif _switch_protocol == 1:
+			_protocol = SaveProtocol.new()
+			_protocol.D = D
+			_protocol.base_pos = _base_detection.position
+		elif _switch_protocol == 2:
+			_protocol = FinalProtocol.new()
+			_protocol.D = D
+			_protocol.base_pos = _base_detection.position
+		for d in _drones.get_children():
+			d.use_cylinder = _switch_protocol == 2
+			d.drone.state = _protocol.migrate_state(d.drone.state)
+		_switch_protocol = -1
+		
 	
-	# Simulate
+	# --- SIMULATE ---
 	var drones3D : Array[Drone3D]
 	drones3D.assign(_drones.get_children())
-	
-
 	
 	if _run_simulation or _run_one_step:
 		_simulation_loop(drones3D)
 		_run_one_step = false
 	
-	# -- DRAWING --
-	_lines.clear() # clear previous lines
-	#_draw_all_connections(drones3D)
+	# --- DRAWING ---
 	_draw_links(drones3D)
 	
 	# Draw beacon from search_team target
@@ -136,7 +154,6 @@ func _simulation_loop(drones3D : Array[Drone3D]) -> void:
 		.map(func(x): return _base_detection.position.distance_squared_to(x.drone.state["position"])) \
 		.min()
 	
-	# TODO : CORRECT BUG (2 drones launched) IF MOVEMENT TIME IS TOO LOW !!!!!
 	if drones_near_base.is_empty() or closest_to_base > 9*D*D:
 		await _deploy_new_drone().finished
 		
@@ -175,47 +192,32 @@ func _simulation_loop(drones3D : Array[Drone3D]) -> void:
 func _draw_links(drones3D : Array[Drone3D]) -> void:
 	var points : Array[Vector3] = []
 	
-	if _link_filter == null:
-		return
-	
 	for d in drones3D:
 		if not d.drone.state["active"]:
 			continue
 			
-		var others : Array = d.get_neighbours().filter(func(x): return x.drone.state["active"]) \
-		.filter(func(x): return _link_filter.call(d.drone.state, x.drone.state))
+		var others : Array = d.get_neighbours().filter(func(x): return x.drone.state["active"] and x.id < d.id)
 		var others_state = others.map(func(x): return x.drone.state)
 		
 		if others_state.is_empty():
 			continue
 		
-		if _link_reducer:
-			var state_choice = others_state.reduce(_link_reducer, others_state[0])
-			var choice = others.filter(func(x): return x.id == state_choice["id"])[0]
+		for d2 in others:
 			points.append(d.position)
-			points.append(choice.position)
-		else:
-			for d2 in others:
-				points.append(d.position)
-				points.append(d2.position)
+			points.append(d2.position)
 	
 	var others = _base_detection.get_overlapping_bodies().filter(func(x): return x.drone.state["active"])
 	var others_state = others.map(func(x): return x.drone.state)
 	
 	if not others_state.is_empty():
-		if _link_reducer:
-			var state_choice = others_state.reduce(_link_reducer, others_state[0])
-			var choice = others.filter(func(x): return x.id == state_choice["id"])[0]
+		for d in others:
 			points.append(_base.position)
-			points.append(choice.position)
-		else:
-			for d in others:
-				points.append(_base.position)
-				points.append(d.position)
+			points.append(d.position)
 	
 	# Generate graph mesh
 	if not points.is_empty():
-		_lines.create_graph(points, Color.CYAN)
+		_lines.create_graph(points, Color.CYAN, _draw_directed_graph)
+		
 			
 func _update_radius() -> void:
 	if not is_inside_tree(): await ready
@@ -256,32 +258,17 @@ func _deploy_new_drone() -> Tween:
 	return d.move(movement_time)
 	
 func deploy_ground_drone_at(pos : Vector3) -> void:
-	
-	while _simulating:
-		await get_tree().physics_frame
-		
-	var state = _protocol.get_default_state()
-	var target_pos = pos + Vector3(0,_base_detection.position.y, 0)
-	state["position"] = target_pos
-	state["id"] = _next_id
-	var d : Drone3D = _drone_scene.instantiate().init(_next_id, state, D)
-	d.show_radius = show_radius
-	d.use_cylinder = _protocol is FinalProtocol
-	_next_id += 1
-	d.position = target_pos
-	
-	_drones.add_child(d)
-	
+	_deploy_ground_pos = pos
 	
 func set_search_target(pos : Vector2) -> void:
 	if _search_drone:
 		_search_target_pos = pos
 		_target_vis.position = Vector3(pos.x, _base.position.y, pos.y)
 	
-			
 func kill_inactive() -> void:
-	for d in _drones.get_children():
-		if not d.drone.state["active"]:
-			d.queue_free()
+	_kill_inactive = true
+	
+func draw_directed_graph(val : bool) -> void:
+	_draw_directed_graph = val
 	
 

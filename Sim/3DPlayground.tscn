@@ -41,7 +41,7 @@ uv1_world_triplanar = true
 material = SubResource("StandardMaterial3D_hwn4p")
 size = Vector2(500, 500)
 
-[sub_resource type="SphereShape3D" id="SphereShape3D_rfgqi"]
+[sub_resource type="SphereShape3D" id="SphereShape3D_706ve"]
 radius = 2.1
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_j24ev"]
@@ -74,12 +74,12 @@ height = 0.3
 shader = ExtResource("2_hqret")
 shader_parameter/opacity = 0.25
 
-[node name="3DPlayground" type="CanvasLayer" node_paths=PackedStringArray("mainView", "fps_label", "link_expr", "protocol_choice")]
+[node name="3DPlayground" type="CanvasLayer" node_paths=PackedStringArray("mainView", "fps_label", "protocol_choice", "graph_choice")]
 script = ExtResource("1_o65i0")
 mainView = NodePath("GUI/VBoxContainer/HSplitContainer/3DView/MainViewContainer/MainView")
 fps_label = NodePath("GUI/VBoxContainer/HSplitContainer/3DView/StatsPanel/VBoxContainer/FpsLabel")
-link_expr = NodePath("GUI/VBoxContainer/HSplitContainer/OptionsPanel/VBoxContainer/LinkExp")
 protocol_choice = NodePath("GUI/VBoxContainer/HSplitContainer/OptionsPanel/VBoxContainer/ProtocolChoice")
+graph_choice = NodePath("GUI/VBoxContainer/HSplitContainer/OptionsPanel/VBoxContainer/GraphChoice")
 
 [node name="GUI" type="Panel" parent="."]
 anchors_preset = 15
@@ -164,7 +164,7 @@ stretch = true
 handle_input_locally = false
 msaa_3d = 2
 screen_space_aa = 1
-size = Vector2i(2, 2)
+size = Vector2i(1678, 1040)
 render_target_update_mode = 4
 script = ExtResource("2_3aya7")
 
@@ -199,7 +199,7 @@ collision_layer = 2
 collision_mask = 2
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="GUI/VBoxContainer/HSplitContainer/3DView/MainViewContainer/MainView/3DDroneManager/Base/Detection"]
-shape = SubResource("SphereShape3D_rfgqi")
+shape = SubResource("SphereShape3D_706ve")
 
 [node name="Visualization" type="Node3D" parent="GUI/VBoxContainer/HSplitContainer/3DView/MainViewContainer/MainView/3DDroneManager/Base/Detection"]
 visible = false
@@ -344,6 +344,15 @@ max_value = 0.1
 step = 0.001
 value = 0.05
 
+[node name="GraphLabel" type="Label" parent="GUI/VBoxContainer/HSplitContainer/OptionsPanel/VBoxContainer"]
+layout_mode = 2
+text = "Graph display"
+autowrap_mode = 3
+
+[node name="GraphChoice" type="MenuButton" parent="GUI/VBoxContainer/HSplitContainer/OptionsPanel/VBoxContainer"]
+layout_mode = 2
+text = "Connexions"
+
 [node name="ProtocolLabel" type="Label" parent="GUI/VBoxContainer/HSplitContainer/OptionsPanel/VBoxContainer"]
 layout_mode = 2
 text = "Protocol"
@@ -352,18 +361,6 @@ autowrap_mode = 3
 [node name="ProtocolChoice" type="MenuButton" parent="GUI/VBoxContainer/HSplitContainer/OptionsPanel/VBoxContainer"]
 layout_mode = 2
 text = "Kill Protocol"
-
-[node name="LinkExpLabel" type="Label" parent="GUI/VBoxContainer/HSplitContainer/OptionsPanel/VBoxContainer"]
-layout_mode = 2
-text = "Link condition"
-autowrap_mode = 3
-
-[node name="LinkExp" type="TextEdit" parent="GUI/VBoxContainer/HSplitContainer/OptionsPanel/VBoxContainer"]
-modulate = Color(0, 1, 0, 1)
-layout_mode = 2
-text = "{other.id < id}"
-placeholder_text = "{other.id < id}"
-scroll_fit_content_height = true
 
 [connection signal="id_pressed" from="GUI/VBoxContainer/MenuBarPanel/MenuBar/Preferences" to="." method="_on_preferences_id_pressed"]
 [connection signal="id_pressed" from="GUI/VBoxContainer/MenuBarPanel/MenuBar/View" to="." method="_on_view_id_pressed"]
@@ -374,4 +371,3 @@ scroll_fit_content_height = true
 [connection signal="pressed" from="GUI/VBoxContainer/HSplitContainer/3DView/PlaybackPanel/HBoxContainer/ResetButton" to="." method="_on_reset_button_pressed"]
 [connection signal="pressed" from="GUI/VBoxContainer/HSplitContainer/OptionsPanel/VBoxContainer/KillInactive" to="." method="_on_kill_inactive_pressed"]
 [connection signal="value_changed" from="GUI/VBoxContainer/HSplitContainer/OptionsPanel/VBoxContainer/MoveTimeSlider" to="." method="_on_move_time_value_changed"]
-[connection signal="text_changed" from="GUI/VBoxContainer/HSplitContainer/OptionsPanel/VBoxContainer/LinkExp" to="." method="_on_look_exp_text_changed"]

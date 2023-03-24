@@ -1,12 +1,8 @@
 extends CanvasLayer
 @export var mainView : SubViewport
 @export var fps_label : Label
-@export var link_expr : TextEdit
 @export var protocol_choice : MenuButton
-
-
-var _default_filter = func(s1, s2): return s2["id"] < s1["id"] and s1["active"] and s2["active"] and abs(s1["position"].y-s2["position"].y) < 0.1
-
+@export var graph_choice : MenuButton
 
 var _play_simulation := true
 
@@ -14,6 +10,8 @@ var _play_simulation := true
 # -- GUI EVENTS --
 
 func _ready():
+	
+	
 	var popup = protocol_choice.get_popup()
 	popup.add_item("Kill Protocol")
 	popup.add_item("Save Protocol")
@@ -26,7 +24,19 @@ func _ready():
 		mainView.set_protocol(index)
 	)
 	
-	mainView.set_link_pipeline(_default_filter, null)
+	popup = graph_choice.get_popup()
+	popup.add_item("Connexions")
+	popup.add_item("Lower ids")
+	
+	popup.connect("id_pressed", func(id):
+		var index = popup.get_item_index(id)
+		var text = popup.get_item_text(index)
+		graph_choice.text = text
+		mainView.draw_directed_graph(index == 1)
+	)
+	
+	
+	
 	
 
 func _process(delta):
@@ -85,72 +95,6 @@ func _on_view_id_pressed(id):
 	# hide inactive drones
 	elif id == 5 :
 		mainView.hide_inactive_drones(checked)
-
-
-func _on_look_exp_text_changed():
-	var err_color = Color.RED
-	var ok_color =  Color.GREEN
-	link_expr.modulate = ok_color
-	
-	var txt = link_expr.text
-	var exp = txt.replace("\n", "").strip_edges()
-	var check_reg = RegEx.new()
-	check_reg.compile("^(max|min|rand|first|last)?\\ *{\\ *other\\.id\\ *(<=|!=|>=|<|>|==)\\ *id\\ *}$")
-	
-	# Use default impl
-	if exp.is_empty():
-		mainView.set_link_pipeline(_default_filter, null)
-		return
-	
-	# Use parse error
-	if not check_reg.search(exp):
-		mainView.set_link_pipeline(null, null)
-		link_expr.modulate = err_color
-		return
-	
-	# Use parse values
-	var reduction_reg = RegEx.new()
-	reduction_reg.compile("(max|min|rand|first|last)")
-	var filter_reg = RegEx.new()
-	filter_reg.compile("(<=|!=|>=|<|>|==)")
-	var reduction_res = reduction_reg.search(exp)
-	var filter_res = filter_reg.search(exp)
-	
-	var reduction_pattern = reduction_res.get_string() if reduction_res else ""
-	var filter_pattern = filter_res.get_string()
-	
-	# define filter function on id
-	var filter : Callable
-	if filter_pattern == "<":
-		filter = func(s1, s2): return s2["id"] < s1["id"] and s1["active"] and s2["active"] and abs(s1["position"].y-s2["position"].y) < 0.1
-	elif filter_pattern == ">":
-		filter = func(s1, s2): return s2["id"] > s1["id"] and s1["active"] and s2["active"] and abs(s1["position"].y-s2["position"].y) < 0.1
-	elif filter_pattern == "<=":
-		filter = func(s1, s2): return s2["id"] <= s1["id"] and s1["active"] and s2["active"] and abs(s1["position"].y-s2["position"].y) < 0.1
-	elif filter_pattern == ">=":
-		filter = func(s1, s2): return s2["id"] >= s1["id"] and s1["active"] and s2["active"] and abs(s1["position"].y-s2["position"].y) < 0.1
-	elif filter_pattern == "!=":
-		filter = func(s1, s2): return s2["id"] != s1["id"] and s1["active"] and s2["active"] and abs(s1["position"].y-s2["position"].y) < 0.1
-	elif filter_pattern == "==":
-		filter = func(s1, s2): return s2["id"] == s1["id"] and s1["active"] and s2["active"] and abs(s1["position"].y-s2["position"].y) < 0.1
-		
-	# define reduction function on id
-	var reduction = null
-	if reduction_pattern == "max":
-		reduction = func(acc, x): return acc if acc["id"] > x["id"] else x
-	elif reduction_pattern == "min":
-		reduction = func(acc, x): return acc if acc["id"] < x["id"] else x
-	elif reduction_pattern == "rand":
-		reduction = func(acc, x): return acc if randi_range(0, 1) else x
-	elif reduction_pattern == "first":
-		reduction = func(acc, x): return acc
-	elif reduction_pattern == "last":
-		reduction = func(acc, x): return x
-	else:
-		reduction = null
-		
-	mainView.set_link_pipeline(filter, reduction)
-
 
 func _on_kill_inactive_pressed():
 	mainView.kill_inactive()

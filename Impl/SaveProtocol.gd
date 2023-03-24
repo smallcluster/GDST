@@ -4,8 +4,6 @@ class_name SaveProtocol
 @export var D : float = 0.3
 @export var base_pos : Vector3 = Vector3.ZERO
 
-var choice_reduction : Callable = func(acc, x): return acc if acc["id"] > x["id"] else x
-
 #-------------------------------------------------------------------------------
 
 func get_default_state() -> Dictionary:
@@ -15,8 +13,7 @@ func get_default_state() -> Dictionary:
 		"active": true,
 		"position": Vector3.ZERO,
 		"light": false,
-		"border": false,
-		"connectedId" : -1
+		"border": false
 	}
 
 func look(state : Dictionary, neighbours : Array[Drone]) -> Array:
@@ -25,8 +22,7 @@ func look(state : Dictionary, neighbours : Array[Drone]) -> Array:
 		"id" : x.state["id"],
 		"position" : x.state["position"],
 		"light" : x.state["light"],
-		"border" : x.state["border"],
-		"connectedId" : x.state["connectedId"]
+		"border" : x.state["border"]
 	})
 	
 	
@@ -43,13 +39,11 @@ func compute(state : Dictionary, obs : Array) -> Dictionary:
 	var id : int = state["id"]
 	var active : bool = state["active"]
 	var border : bool = state["border"]
-	var connectedId : int = state["connectedId"]
 	
 	# Default new state
 	var new_state = state.duplicate()
 	new_state["light"] = false
 	new_state["border"] = false
-	new_state["connectedId"] = -1
 	
 	# Do nothing if inactive
 	if not active:
@@ -86,28 +80,23 @@ func compute(state : Dictionary, obs : Array) -> Dictionary:
 	#- Going to search team
 	obs = obs.filter(func(x): return abs(x["position"].y - return_height) >= 0.1 )
 	
-	var connected_to_me = obs.filter(func(x): return x["connectedId"] == id and x["id"] > id)
+	var connected_to_me = obs.filter(func(x): return x["id"] > id)
 	
 	# I am a leaf drone or all paths behind me are "border" path
 	var con_to_base = pos.distance_squared_to(base_pos) < 49*D*D
-	var con_to_branche = connected_to_me.all(func(x): return x["border"])
+	var isolated = connected_to_me.all(func(x): return x["border"])
 	
-	if (connected_to_me.is_empty() or con_to_branche) and not con_to_base and id > 0:
+	if (connected_to_me.is_empty() or isolated) and not con_to_base and id > 0:
 		new_state["border"] = true
 	
 	obs = obs.filter(func(x): return x["id"] < id) # default observation
 	
 	# Chose who to connect to	
 	
-	
+	# no movement possible
 	if obs.is_empty():
 		return new_state
 		
-	# no movement possible
-	new_state["connectedId"] = obs.reduce(choice_reduction, obs[0])["id"]
-	
-	
-
 	# --- Default protocol:
 	
 	# Collision ? => return to base
