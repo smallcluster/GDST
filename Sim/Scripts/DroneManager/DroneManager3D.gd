@@ -88,11 +88,13 @@ func _physics_process(delta):
 		state["id"] = _next_id
 		var d : Drone3D = _drone_scene.instantiate().init(_next_id, state, D)
 		d.show_radius = show_radius
-		d.use_cylinder = _protocol is FinalProtocol
+		d.use_cylinder = _protocol is FinalProtocol or _protocol is ObliviousFinalProtocol
 		_next_id += 1
 		d.position = target_pos
 		_drones.add_child(d)
+		
 		_deploy_ground_pos = null
+		return # refresh physics frame
 		
 	# kill inactive
 	if _kill_inactive and not _simulating:
@@ -115,8 +117,13 @@ func _physics_process(delta):
 			_protocol = FinalProtocol.new()
 			_protocol.D = D
 			_protocol.base_pos = _base_detection.position
+		elif _switch_protocol == 3:
+			_protocol = ObliviousFinalProtocol.new()
+			_protocol.D = D
+			_protocol.base_pos = _base_detection.position
+			
 		for d in _drones.get_children():
-			d.use_cylinder = _switch_protocol == 2
+			d.use_cylinder = _switch_protocol > 1
 			d.drone.state = _protocol.migrate_state(d.drone.state)
 		_switch_protocol = -1
 		
@@ -245,7 +252,7 @@ func _deploy_new_drone() -> Tween:
 	var d : Drone3D = _drone_scene.instantiate().init(_next_id, state, D)
 	d.show_radius = show_radius
 	
-	d.use_cylinder = _protocol is FinalProtocol
+	d.use_cylinder = _protocol is FinalProtocol or _protocol is ObliviousFinalProtocol
 	
 	# It's the search team
 	if _next_id == 0:

@@ -16,6 +16,7 @@ func _ready():
 	popup.add_item("Kill Protocol")
 	popup.add_item("Save Protocol")
 	popup.add_item("Final Protocol")
+	popup.add_item("Oblivious Final Protocol")
 	
 	popup.connect("id_pressed", func(id):
 		var index = popup.get_item_index(id)

@@ -2,6 +2,7 @@ extends Protocol
 class_name FinalProtocol
 
 @export var D : float = 0.3
+@export var depth := 5 * D
 @export var base_pos : Vector3 = Vector3.ZERO
 
 #-------------------------------------------------------------------------------
@@ -36,7 +37,7 @@ func compute(state : Dictionary, obs : Array) -> Dictionary:
 	var Dmax := 7 * D
 	var Dc := 2 * D
 	var Dp := 7*D - D
-	var depth := 5 * D
+
 	
 	var return_height = base_pos.y + 2*D
 	
@@ -187,4 +188,3 @@ func compute(state : Dictionary, obs : Array) -> Dictionary:
 		new_state["position"] = pos + vd.normalized() * D
 		
 	return new_state
-	
