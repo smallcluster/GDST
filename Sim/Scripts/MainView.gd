@@ -20,11 +20,11 @@ func run_simulation(running : bool) -> void:
 func run_one_simulation_step() -> void:
 	_drone_manager.run_one_simulation_step()
 
-func show_radius(button_pressed):
-	_drone_manager.show_radius = button_pressed
+func show_vision(button_pressed : bool) -> void:
+	_drone_manager.show_vision = button_pressed
 	
-func set_protocol(index : int) -> void:
-	_drone_manager.set_protocol(index)
+func set_protocol(id : int) -> void:
+	_drone_manager.set_protocol(id)
 		
 func top_down_view(button_pressed) -> void:
 	if button_pressed:
@@ -48,7 +48,7 @@ func _move_search_target(position2D) -> void:
 		var target = Vector2(position3D.x, position3D.z)
 		_drone_manager.set_search_target(target)
 		
-func _mouse_to_world(position2D : Vector2):
+func _mouse_to_world(position2D : Vector2) -> Vector3:
 	var dropPlane  = Plane(Vector3(0, 1, 0), 0)
 	var position3D = dropPlane.intersects_ray(
 		_cam.project_ray_origin(position2D),

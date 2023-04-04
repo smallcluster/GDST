@@ -17,10 +17,10 @@ func _init(init_state : Dictionary, get_neighbours_func : Callable):
 	_get_neighbours = get_neighbours_func
 
 # -- FINAL FUNCTIONS --
-func compute_next_state(p : Protocol) -> void:
+func compute_next_state(p : Protocol, base_pos : Vector3) -> void:
 	_neighbours.assign(_get_neighbours.call())
 	var obs := p.look(state, _neighbours)
-	_next_state = p.compute(state, obs)
+	_next_state = p.compute(state, obs, base_pos)
 
 func update_state() -> void:
 	state = _next_state

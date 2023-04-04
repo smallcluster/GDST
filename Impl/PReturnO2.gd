@@ -3,17 +3,16 @@
 # DESCRIPTION: This protocol blablabla                                                             #
 ####################################################################################################
 
-
 extends Protocol
-class_name ObliviousFinalProtocol
+class_name PReturnO2
 
-@export var D : float = 0.3
-@export var depth := 2 * D
-@export var base_pos : Vector3 = Vector3.ZERO
+var D : float = 0.3
 
-# TODO:
-# as a final proof of concept, switch to a local coordiante system so we can get rid of the  
-# memorized global position
+func get_max_dist_from_base() -> float:
+	return 3 * D
+	
+func get_max_move_dist() -> float:
+	return D
 
 func get_default_state() -> Dictionary:
 	return {
@@ -22,15 +21,6 @@ func get_default_state() -> Dictionary:
 		"active": true,
 		"position": Vector3.ZERO,
 		"light": false,
-		
-		# Jaffuer's states
-		"border": false,
-		"mode" : 0,
-		# match(mode) 
-		#  |0 -> maintaining connexion
-		#  |2 -> returning to base
-		#  |(mode > 2) -> following drone below
-		# modes are sorted from lowest to highest drone height
 		
 		# GODOT SIMULATION SPECIFIC (to unload drone object)
 		"KILL" : false
@@ -42,13 +32,9 @@ func get_defaults_from_state(state : Dictionary) -> Dictionary:
 		"id" : state["id"],
 		"active": state["active"],
 		"position": state["position"], 
-		# In reality, global position isn't memorized, the drone can use its local coordinates (0,0) 
-		# to compare distances to visible drones and move towards them.
-		
-		# Not memorized state
 		"light": false,
-		"border": false,
-		"mode" : 0,
+	
+		# GODOT SIMULATION SPECIFIC (to unload drone object)
 		"KILL" : state["KILL"]
 	}
 	
@@ -58,12 +44,10 @@ func look(state : Dictionary, neighbours : Array[Drone]) -> Array:
 	return visible.map(func(x): return {
 		"id" : x.state["id"],
 		"position" : x.state["position"],
-		"light" : x.state["light"],
-		"border" : x.state["border"],
-		"mode" : x.state["mode"]
+		"light" : x.state["light"]
 	})
 	
-func compute(state : Dictionary, obs : Array) -> Dictionary:
+func compute(state : Dictionary, obs : Array, base_pos : Vector3) -> Dictionary:
 	
 	#***********************************************************************************************
 	#*                                       CONSTANTS                                             *
@@ -74,6 +58,7 @@ func compute(state : Dictionary, obs : Array) -> Dictionary:
 	var Dmax := 7 * D
 	var Dc := 2 * D
 	var Dp := 7*D - D
+	var depth := 2 * D
 	
 	# CURRENT DRONE'S OBSERVABLE STATE
 	#-----------------------------------------------------------------------------------------------
@@ -100,22 +85,7 @@ func compute(state : Dictionary, obs : Array) -> Dictionary:
 	var collision_filter = func(x): return x["id"] < id and _flat_dist_sq(x["position"], pos) < D*D
 	var collision_warn_filter = func(x): return _flat_dist_sq(x["position"], pos) < 4*D*D
 	
-	# find in which mode we are
-	#  |0 -> maintaining connexion
-	#  |1 -> returning to base
-	#  |(mode > 1) -> following a drone below
-	var below_modes = (layer1 + layer2).map(func(x): return x["mode"])
-	var current_mode = 0
 	
-	if not below_modes.is_empty():
-		current_mode = below_modes.reduce(func(acc, x): return acc if acc > x else x, \
-																				below_modes[0]) + 1
-	elif not self_layer.is_empty():
-		var self_layer_modes = self_layer.map(func(x): return x["mode"])
-		current_mode = self_layer_modes.reduce(func(acc, x): return acc if acc > x else x, \
-																				self_layer_modes[0])
-	new_state["mode"] = current_mode
-
 	# CHOSE WHICH ACTION TO PERFORM 
 	#-----------------------------------------------------------------------------------------------
 	
@@ -132,67 +102,46 @@ func compute(state : Dictionary, obs : Array) -> Dictionary:
 		new_state["position"] = pos - Vector3.UP * D
 		return new_state
 		
-	# FOLLOW BELOW DRONES ?
-	if current_mode > 1 : 
-		# closest drone below or in the current plane
-		var obs_pos
-		if layer1.is_empty() and layer2.is_empty():
-			obs_pos = self_layer.map(func(x): return x["position"])
-		elif layer2.is_empty():
-			obs_pos = layer1.map(func(x): return x["position"])
-		else:
-			obs_pos = layer2.map(func(x): return x["position"])
-			
-		var target_pos : Vector3 = obs_pos.reduce(func(acc, x): return acc if \
-							_flat_dist_sq(acc, pos) < _flat_dist_sq(x, pos) else x, obs_pos[0])
-		# Follow only if there is a chance of losing track of the lowest visible drone within 2
-		# movement step (2*D)
-		#if _flat_dist_sq(target_pos, pos) > Dd*Dd:
-		target_pos.y = pos.y # stay in the same plane
-		new_state["position"] = pos + (target_pos-pos).normalized() * D
-		return new_state
-	
 	# RETURN TO BASE ?
-	if current_mode == 1:
+	if not (layer1+layer2).is_empty():
+		
 		# Already near base !
 		if pos.distance_squared_to(base_pos) <= 25*D*D:
 			new_state["KILL"] = true
 			return new_state
 		
-		# look drones below !	
+		# look drones below and follow largest id	
 		obs = layer2 + layer1
-		
-		var on_border = obs.all(func(x): return x["border"])
-		var target
-		if on_border:
-			target = obs.reduce(func(acc, x): return acc if acc["id"] < x["id"] else x, obs[0])
-		else:
-			# go to the larget id not on border
-			var candidates = obs.filter(func(x): return not x["border"])
-			target = candidates.reduce(func(acc, x): return acc if acc["id"] > x["id"] else x, \
-																					candidates[0])
+		var target = obs.reduce(func(acc, x): return acc if acc["id"] > x["id"] else x, \
+																					obs[0])
 		var target_pos = target["position"]
 		target_pos.y = pos.y
 		new_state["position"] = pos + (target_pos - pos).normalized() * D
 		return new_state
 		
-	
 	# MAINTAINING CONNEXION...
 	
 	#-----------------------------------------------------------------------------------------------	
-	# DISTRIBUTED ALGORITHM TO ISOLATE A STRICTLY ORDERED CHAIN FROM BASE TO SEARCH TEAM'S DRONE
-	# (Needed for the "return to base" mode)
+	# Return unecessary drone to base
 	#-----------------------------------------------------------------------------------------------
 	
-	#Going to search team
 	obs = self_layer
-	var connected_to_me = obs.filter(func(x): return x["id"] > id)
+	var leaf_drone = obs.filter(func(x): return x["id"] > id).is_empty()
 	# I am a leaf drone or all paths behind me are "border" path
 	var con_to_base = _flat_dist_sq(base_pos, pos) < Dmax*Dmax
-	var isolated = connected_to_me.all(func(x): return x["border"])
 	
-	if (connected_to_me.is_empty() or isolated) and not con_to_base and id > 0:
-		new_state["border"] = true
+	if leaf_drone and not con_to_base:
+		var closest = obs.reduce(func(acc, x): return acc if _flat_dist_sq(acc["position"], pos) < \
+												_flat_dist_sq(x["position"], pos) else x, obs[0])
+		var target_pos = closest["position"]
+		# check if going up wont lose the connexion after moving up (< Dp)
+		if _flat_dist_sq(target_pos, pos) < Dp*Dp:
+			new_state["position"] = pos + Vector3.UP * D
+		# get closer to the nearest
+		else:
+			new_state["position"] = pos + (target_pos-pos).normalized() * D
+			
+		return new_state
 	
 	#-----------------------------------------------------------------------------------------------	
 	# BALABONSKI & AL.'S CONNEXION PROTOCOL
@@ -230,3 +179,21 @@ func compute(state : Dictionary, obs : Array) -> Dictionary:
 # Returns squared distance from two points in the XZ plane (Y is up)
 func _flat_dist_sq(p1, p2) -> float:
 	return (p1.x-p2.x)*(p1.x-p2.x)+(p1.z-p2.z)*(p1.z-p2.z)
+	
+	
+# PARAMS FOR GODOT DRONE OBJECT
+# --------------------------------------------------------------------------------------------------
+func get_vision_shape() -> CollisionShape3D:
+	var collision = CollisionShape3D.new()
+	collision.shape = CylinderShape3D.new()
+	collision.shape.radius = 7*D
+	collision.shape.height = 2*D
+	collision.position = Vector3(0, -D, 0)
+	return collision
+	
+func get_vision_meshes() -> Array[MeshInstance3D]:
+	var d = MeshCreator.create_cylinder(D, 2*D, Color.RED, 32, Vector3(0, -D, 0))
+	var dc = MeshCreator.create_cylinder(2*D, 2*D, Color.ORANGE, 32, Vector3(0, -D, 0))
+	var dp = MeshCreator.create_cylinder(7*D-D, 2*D, Color.GREEN, 32, Vector3(0, -D, 0))
+	var dmax = MeshCreator.create_cylinder(7*D, 2*D, Color.BLUE, 32, Vector3(0, -D, 0))
+	return [d,dc,dp,dmax]

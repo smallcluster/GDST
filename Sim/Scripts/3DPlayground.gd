@@ -13,10 +13,11 @@ func _ready():
 	
 	
 	var popup = protocol_choice.get_popup()
-	popup.add_item("Kill Protocol")
-	popup.add_item("Save Protocol")
-	popup.add_item("Final Protocol")
-	popup.add_item("Oblivious Final Protocol")
+	protocol_choice.text = "Default"
+	popup.add_item("Default")
+	popup.add_item("Return")
+	popup.add_item("Return -O2")
+	#popup.add_item("Return -O3")
 	
 	popup.connect("id_pressed", func(id):
 		var index = popup.get_item_index(id)
@@ -38,8 +39,6 @@ func _ready():
 	
 	
 	
-	
-
 func _process(delta):
 	fps_label.text = str(Engine.get_frames_per_second()) + " FPS"
 
@@ -92,7 +91,7 @@ func _on_view_id_pressed(id):
 		mainView.reset_view()
 	# drone vision
 	elif id == 4:
-		mainView.show_radius(checked)
+		mainView.show_vision(checked)
 	# hide inactive drones
 	elif id == 5 :
 		mainView.hide_inactive_drones(checked)

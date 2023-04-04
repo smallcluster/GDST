@@ -72,7 +72,7 @@ static func create_graph(points : Array[Vector3], color : Color = Color.WHITE, d
 	return mesh_inst
 	
 	
-static func create_circle(radius : float, color : Color, resolution : int = 32) -> MeshInstance3D:
+static func create_circle(radius : float, color : Color, resolution : int = 32, offset : Vector3 = Vector3.ZERO) -> MeshInstance3D:
 	var mesh_inst := MeshInstance3D.new()
 	var mesh := ImmediateMesh.new()
 	var mat := ORMMaterial3D.new()
@@ -82,9 +82,9 @@ static func create_circle(radius : float, color : Color, resolution : int = 32) 
 	var cursor := Vector3(0, radius, 0)
 	var rot := (360.0 * PI) / (resolution * 180.0)
 	for i in range(resolution):
-		mesh.surface_add_vertex(cursor)
+		mesh.surface_add_vertex(cursor+offset)
 		cursor = cursor.rotated(Vector3(0, 0, 1), rot)
-		mesh.surface_add_vertex(cursor)
+		mesh.surface_add_vertex(cursor+offset)
 	mesh.surface_end()
 	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	mat.albedo_color = color
@@ -94,7 +94,7 @@ static func create_circle(radius : float, color : Color, resolution : int = 32) 
 	mat.render_priority = 10
 	return mesh_inst
 	
-static func create_cylinder(radius : float, height : float, color : Color, resolution : int = 32) -> MeshInstance3D:
+static func create_cylinder(radius : float, height : float, color : Color, resolution : int = 32, offset : Vector3 = Vector3.ZERO) -> MeshInstance3D:
 	var mesh_inst := MeshInstance3D.new()
 	var mesh := ImmediateMesh.new()
 	var mat := ORMMaterial3D.new()
@@ -102,33 +102,33 @@ static func create_cylinder(radius : float, height : float, color : Color, resol
 	mesh_inst.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	mesh.surface_begin(Mesh.PRIMITIVE_LINES, mat)
 	
-	var cursor := Vector3(radius, 0 , 0)
+	var cursor := Vector3(radius, height/2 , 0)
 	var rot := (360.0 * PI) / (resolution * 180.0)
 	var dy := Vector3(0,-height,0)
 	
 	for i in range(resolution):
 		var rotated_cursor := cursor.rotated(Vector3(0, 1, 0), rot)
 		# Top
-		mesh.surface_add_vertex(cursor)
-		mesh.surface_add_vertex(rotated_cursor)
+		mesh.surface_add_vertex(cursor+offset)
+		mesh.surface_add_vertex(rotated_cursor+offset)
 		# Bottom
-		mesh.surface_add_vertex(cursor+dy)
-		mesh.surface_add_vertex(rotated_cursor+dy)
+		mesh.surface_add_vertex(cursor+dy+offset)
+		mesh.surface_add_vertex(rotated_cursor+dy+offset)
 		
 		cursor = rotated_cursor
 		
 	# sides
-	mesh.surface_add_vertex(Vector3(radius, 0, 0))
-	mesh.surface_add_vertex(Vector3(radius, -height, 0))
+	mesh.surface_add_vertex(Vector3(radius, height/2, 0)+offset)
+	mesh.surface_add_vertex(Vector3(radius, -height/2, 0)+offset)
 	
-	mesh.surface_add_vertex(Vector3(-radius, 0, 0))
-	mesh.surface_add_vertex(Vector3(-radius, -height, 0))
+	mesh.surface_add_vertex(Vector3(-radius, height/2, 0)+offset)
+	mesh.surface_add_vertex(Vector3(-radius, -height/2, 0)+offset)
 	
-	mesh.surface_add_vertex(Vector3(0, 0, radius))
-	mesh.surface_add_vertex(Vector3(0, -height, radius))
+	mesh.surface_add_vertex(Vector3(0, height/2, radius)+offset)
+	mesh.surface_add_vertex(Vector3(0, -height/2, radius)+offset)
 	
-	mesh.surface_add_vertex(Vector3(0, 0, -radius))
-	mesh.surface_add_vertex(Vector3(0, -height, -radius))
+	mesh.surface_add_vertex(Vector3(0, height/2, -radius)+offset)
+	mesh.surface_add_vertex(Vector3(0, -height/2, -radius)+offset)
 		
 	mesh.surface_end()
 	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED

@@ -1,17 +1,25 @@
 extends Protocol
-class_name BCProtocol
+class_name PDefault
 
-@export var D : float = 0.3
+var D : float = 0.3
 
 #-------------------------------------------------------------------------------
+
+func get_max_dist_from_base() -> float:
+	return 3 * D
+	
+func get_max_move_dist() -> float:
+	return D
 
 func get_default_state() -> Dictionary:
 	return {
 		"id" : 0,
-		"KILL" : false,
 		"active": true,
 		"position": Vector3.ZERO,
-		"light": false
+		"light": false,
+		
+		# GODOT SIMULATION SPECIFIC (to unload drone object)
+		"KILL" : false
 	}
 	
 func look(state : Dictionary, neighbours : Array[Drone]) -> Array:
@@ -22,7 +30,7 @@ func look(state : Dictionary, neighbours : Array[Drone]) -> Array:
 		"light" : x.state["light"]
 	})
 
-func compute(state : Dictionary, obs : Array) -> Dictionary:
+func compute(state : Dictionary, obs : Array, base_pos : Vector3) -> Dictionary:
 	
 	var Dmax := 7 * D
 	var Dc := 2 * D
@@ -70,3 +78,19 @@ func compute(state : Dictionary, obs : Array) -> Dictionary:
 		new_state["position"] = pos + vd.normalized() * D
 		
 	return new_state
+
+# PARAMS FOR GODOT DRONE OBJECT
+# --------------------------------------------------------------------------------------------------
+func get_vision_shape() -> CollisionShape3D:
+	var collision = CollisionShape3D.new()
+	collision.shape = SphereShape3D.new()
+	collision.shape.radius = 7*D
+	return collision
+	
+func get_vision_meshes() -> Array[MeshInstance3D]:
+	var dmax = MeshCreator.create_circle(7*D, Color.BLUE)
+	var dp = MeshCreator.create_circle(7*D-D, Color.GREEN)
+	var dc = MeshCreator.create_circle(2*D, Color.ORANGE)
+	var d = MeshCreator.create_circle(D, Color.RED)
+	
+	return [d,dc,dp,dmax]
