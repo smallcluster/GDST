@@ -36,7 +36,6 @@ mesh = SubResource("SphereMesh_glukx")
 surface_material_override/0 = SubResource("ShaderMaterial_58auw")
 
 [node name="Collision" type="CollisionShape3D" parent="."]
-visible = false
 shape = SubResource("SphereShape3D_86j3p")
 
 [node name="Detection" type="Area3D" parent="."]

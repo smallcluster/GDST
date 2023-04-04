@@ -52,6 +52,8 @@ func look(state : Dictionary, neighbours : Array[Drone]) -> Array:
 	
 func compute(state : Dictionary, obs : Array, base_pos : Vector3) -> Dictionary:
 	
+	assert(state["position"].y >= base_pos.y-0.01, "lost connexion")
+	
 	#***********************************************************************************************
 	#*                                       CONSTANTS                                             *
 	#***********************************************************************************************
@@ -88,6 +90,8 @@ func compute(state : Dictionary, obs : Array, base_pos : Vector3) -> Dictionary:
 	var collision_filter = func(x): return x["id"] < id and _flat_dist_sq(x["position"], pos) < D*D
 	var collision_warn_filter = func(x): return _flat_dist_sq(x["position"], pos) < 4*D*D
 	
+	# Base retrival is a bit higher
+	var con_to_base = _flat_dist_sq(pos, base_pos) < Dmax*Dmax and  (pos.y - base_pos.y) < 3 * depth
 	
 	var returning = not self_layer.all(func(x): return not x["returning"]) or not (layer1+layer2).is_empty() 
 	new_state["returning"] = returning
@@ -101,20 +105,19 @@ func compute(state : Dictionary, obs : Array, base_pos : Vector3) -> Dictionary:
 	
 	if self_layer_collision or not layer1.is_empty():
 		new_state["position"] = pos + Vector3.UP * D
-		new_state["returning"] = true
 		return new_state
 		
 	# GO DOWN ?
-	if (layer2.is_empty() and not layer1_warn_collision and self_layer.is_empty()) or ((layer1+layer2).is_empty() and returning):
+	if (layer1+layer2).is_empty() and (returning or self_layer.is_empty()):
 		new_state["position"] = pos - Vector3.UP * D
 		return new_state
 		
 	# RETURN TO BASE ?
 	if returning:
 		# Already near base !
-		if _flat_dist_sq(pos, base_pos) < Dmax*Dmax and  (pos.y - base_pos.y) < depth:
-			# Base capture drone if < Dmax-2D (max lag caused by drone height displacement of 2D)
-			if(_flat_dist_sq(pos, base_pos) < (Dmax-2*D)*(Dmax-2*D)):
+		if con_to_base:
+			# Base capture drone
+			if(_flat_dist_sq(pos, base_pos) < 4*D*D):
 				new_state["KILL"] = true
 				return new_state
 			
@@ -136,38 +139,35 @@ func compute(state : Dictionary, obs : Array, base_pos : Vector3) -> Dictionary:
 	# MAINTAINING CONNEXION...
 	
 	#-----------------------------------------------------------------------------------------------	
-	# Return unecessary drone to base
+	# Try to return unecessary drone to base
 	#-----------------------------------------------------------------------------------------------
 	
-	obs = self_layer
-	var leaf_drone = obs.filter(func(x): return x["id"] > id).is_empty()
-	# I am a leaf drone or all paths behind me are "border" path
-	var con_to_base = _flat_dist_sq(base_pos, pos) < Dmax*Dmax
+	var leaf_drone = self_layer.filter(func(x): return x["id"] > id).is_empty()
 	
+	# Only look at neighbours with a lower id
+	obs = self_layer.filter(func(x): return x["id"] < id)
+	
+	# I am a leaf drone so i'm not usefull for maintaining connexion
 	if leaf_drone and not con_to_base:
 		var closest = obs.reduce(func(acc, x): return acc if _flat_dist_sq(acc["position"], pos) < \
 												_flat_dist_sq(x["position"], pos) else x, obs[0])
 		var target_pos = closest["position"]
-		# check if going up wont lose the connexion after moving up (< Dp-D)
-		if _flat_dist_sq(target_pos, pos) < (Dp-D)*(Dp-D):
+		# check if we won't lose the connexion after moving up :
+		# 2D for base retrival
+		# 2D for max lag after moving up
+		if _flat_dist_sq(target_pos, pos) < (Dmax-4*D)*(Dmax-4*D):
 			new_state["position"] = pos + Vector3.UP * D
-			new_state["returning"] = true
-		# get closer to the nearest
 		else:
+			# Move to closest lower id
+			# Rem : there is no collision warning now as Dmax-4D = 3D, so it's safe to move 1D 
+			# towards it
 			new_state["position"] = pos + (target_pos-pos).normalized() * D
 			
 		return new_state
-	
+			
 	#-----------------------------------------------------------------------------------------------	
 	# BALABONSKI & AL.'S CONNEXION PROTOCOL
 	#-----------------------------------------------------------------------------------------------
-	
-	# Only look at neighbours with a lower id
-	obs = obs.filter(func(x): return x["id"] < id)
-	
-	# Can't move
-	if obs.is_empty():
-		return new_state
 	
 	# Prefer neighbours who aren't dangerous
 	var no_lights := obs.filter(func(x): return not x["light"])

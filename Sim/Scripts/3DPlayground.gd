@@ -13,11 +13,11 @@ func _ready():
 	
 	
 	var popup = protocol_choice.get_popup()
-	protocol_choice.text = "Default"
-	popup.add_item("Default")
-	popup.add_item("Return")
-	popup.add_item("Return -O2")
-	#popup.add_item("Return -O3")
+	var names := ProtocolFactory.get_names()
+	
+	protocol_choice.text = names[0]
+	for name in names:
+		popup.add_item(name)
 	
 	popup.connect("id_pressed", func(id):
 		var index = popup.get_item_index(id)
