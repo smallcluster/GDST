@@ -21,6 +21,7 @@ func get_default_state() -> Dictionary:
 		"active": true,
 		"position": Vector3.ZERO,
 		"light": false,
+		"returning" : false,
 		
 		# GODOT SIMULATION SPECIFIC (to unload drone object)
 		"KILL" : false
@@ -33,6 +34,7 @@ func get_defaults_from_state(state : Dictionary) -> Dictionary:
 		"active": state["active"],
 		"position": state["position"], 
 		"light": false,
+		"returning" : false,
 	
 		# GODOT SIMULATION SPECIFIC (to unload drone object)
 		"KILL" : state["KILL"]
@@ -44,7 +46,8 @@ func look(state : Dictionary, neighbours : Array[Drone]) -> Array:
 	return visible.map(func(x): return {
 		"id" : x.state["id"],
 		"position" : x.state["position"],
-		"light" : x.state["light"]
+		"light" : x.state["light"],
+		"returning" : x.state["returning"]
 	})
 	
 func compute(state : Dictionary, obs : Array, base_pos : Vector3) -> Dictionary:
@@ -86,6 +89,9 @@ func compute(state : Dictionary, obs : Array, base_pos : Vector3) -> Dictionary:
 	var collision_warn_filter = func(x): return _flat_dist_sq(x["position"], pos) < 4*D*D
 	
 	
+	var returning = not self_layer.all(func(x): return not x["returning"]) or not (layer1+layer2).is_empty() 
+	new_state["returning"] = returning
+
 	# CHOSE WHICH ACTION TO PERFORM 
 	#-----------------------------------------------------------------------------------------------
 	
@@ -95,19 +101,27 @@ func compute(state : Dictionary, obs : Array, base_pos : Vector3) -> Dictionary:
 	
 	if self_layer_collision or not layer1.is_empty():
 		new_state["position"] = pos + Vector3.UP * D
+		new_state["returning"] = true
 		return new_state
 		
 	# GO DOWN ?
-	if layer2.is_empty() and not layer1_warn_collision and self_layer.is_empty():
+	if (layer2.is_empty() and not layer1_warn_collision and self_layer.is_empty()) or ((layer1+layer2).is_empty() and returning):
 		new_state["position"] = pos - Vector3.UP * D
 		return new_state
 		
 	# RETURN TO BASE ?
-	if not (layer1+layer2).is_empty():
-		
+	if returning:
 		# Already near base !
-		if pos.distance_squared_to(base_pos) <= 25*D*D:
-			new_state["KILL"] = true
+		if _flat_dist_sq(pos, base_pos) < Dmax*Dmax and  (pos.y - base_pos.y) < depth:
+			# Base capture drone if < Dmax-2D (max lag caused by drone height displacement of 2D)
+			if(_flat_dist_sq(pos, base_pos) < (Dmax-2*D)*(Dmax-2*D)):
+				new_state["KILL"] = true
+				return new_state
+			
+			# go towards base pos in current plane
+			var target_pos = base_pos
+			target_pos.y = pos.y
+			new_state["position"] = pos + (target_pos-pos).normalized() * D
 			return new_state
 		
 		# look drones below and follow largest id	
@@ -134,9 +148,10 @@ func compute(state : Dictionary, obs : Array, base_pos : Vector3) -> Dictionary:
 		var closest = obs.reduce(func(acc, x): return acc if _flat_dist_sq(acc["position"], pos) < \
 												_flat_dist_sq(x["position"], pos) else x, obs[0])
 		var target_pos = closest["position"]
-		# check if going up wont lose the connexion after moving up (< Dp)
-		if _flat_dist_sq(target_pos, pos) < Dp*Dp:
+		# check if going up wont lose the connexion after moving up (< Dp-D)
+		if _flat_dist_sq(target_pos, pos) < (Dp-D)*(Dp-D):
 			new_state["position"] = pos + Vector3.UP * D
+			new_state["returning"] = true
 		# get closer to the nearest
 		else:
 			new_state["position"] = pos + (target_pos-pos).normalized() * D

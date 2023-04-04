@@ -24,12 +24,7 @@ func get_default_state() -> Dictionary:
 		
 		# Jaffuer's states
 		"border": false,
-		"mode" : 0,
-		# match(mode) 
-		#  |0 -> maintaining connexion
-		#  |2 -> returning to base
-		#  |(mode > 2) -> following drone below
-		# modes are sorted from lowest to highest drone height
+		"returning" : false,
 		
 		# GODOT SIMULATION SPECIFIC (to unload drone object)
 		"KILL" : false
@@ -47,7 +42,7 @@ func get_defaults_from_state(state : Dictionary) -> Dictionary:
 		# Not memorized state
 		"light": false,
 		"border": false,
-		"mode" : 0,
+		"returning" : false,
 		"KILL" : state["KILL"]
 	}
 	
@@ -59,7 +54,7 @@ func look(state : Dictionary, neighbours : Array[Drone]) -> Array:
 		"position" : x.state["position"],
 		"light" : x.state["light"],
 		"border" : x.state["border"],
-		"mode" : x.state["mode"]
+		"returning" : x.state["returning"]
 	})
 	
 func compute(state : Dictionary, obs : Array, base_pos : Vector3) -> Dictionary:
@@ -100,21 +95,9 @@ func compute(state : Dictionary, obs : Array, base_pos : Vector3) -> Dictionary:
 	var collision_filter = func(x): return x["id"] < id and _flat_dist_sq(x["position"], pos) < D*D
 	var collision_warn_filter = func(x): return _flat_dist_sq(x["position"], pos) < 4*D*D
 	
-	# find in which mode we are
-	#  |0 -> maintaining connexion
-	#  |1 -> returning to base
-	#  |(mode > 1) -> following a drone below
-	var below_modes = (layer1 + layer2).map(func(x): return x["mode"])
-	var current_mode = 0
-	
-	if not below_modes.is_empty():
-		current_mode = below_modes.reduce(func(acc, x): return acc if acc > x else x, \
-																				below_modes[0]) + 1
-	elif not self_layer.is_empty():
-		var self_layer_modes = self_layer.map(func(x): return x["mode"])
-		current_mode = self_layer_modes.reduce(func(acc, x): return acc if acc > x else x, \
-																				self_layer_modes[0])
-	new_state["mode"] = current_mode
+
+	var returning = not self_layer.all(func(x): return not x["returning"]) or not (layer1+layer2).is_empty() 
+	new_state["returning"] = returning
 
 	# CHOSE WHICH ACTION TO PERFORM 
 	#-----------------------------------------------------------------------------------------------
@@ -125,38 +108,28 @@ func compute(state : Dictionary, obs : Array, base_pos : Vector3) -> Dictionary:
 	
 	if self_layer_collision or not layer1.is_empty():
 		new_state["position"] = pos + Vector3.UP * D
+		new_state["returning"] = true
 		return new_state
 		
 	# GO DOWN ?
-	if layer2.is_empty() and not layer1_warn_collision and self_layer.is_empty():
+	if (layer2.is_empty() and not layer1_warn_collision and self_layer.is_empty()) or ((layer1+layer2).is_empty() and returning):
 		new_state["position"] = pos - Vector3.UP * D
 		return new_state
 		
-	# FOLLOW BELOW DRONES ?
-	if current_mode > 1 : 
-		# closest drone below or in the current plane
-		var obs_pos
-		if layer1.is_empty() and layer2.is_empty():
-			obs_pos = self_layer.map(func(x): return x["position"])
-		elif layer2.is_empty():
-			obs_pos = layer1.map(func(x): return x["position"])
-		else:
-			obs_pos = layer2.map(func(x): return x["position"])
-			
-		var target_pos : Vector3 = obs_pos.reduce(func(acc, x): return acc if \
-							_flat_dist_sq(acc, pos) < _flat_dist_sq(x, pos) else x, obs_pos[0])
-		# Follow only if there is a chance of losing track of the lowest visible drone within 2
-		# movement step (2*D)
-		#if _flat_dist_sq(target_pos, pos) > Dd*Dd:
-		target_pos.y = pos.y # stay in the same plane
-		new_state["position"] = pos + (target_pos-pos).normalized() * D
-		return new_state
-	
 	# RETURN TO BASE ?
-	if current_mode == 1:
+	if returning:
 		# Already near base !
-		if pos.distance_squared_to(base_pos) <= 25*D*D:
-			new_state["KILL"] = true
+		if _flat_dist_sq(pos, base_pos) < Dmax*Dmax and  (pos.y - base_pos.y) < depth:
+			
+			# Base capture drone if < Dmax-2D (max lag caused by drone height displacement of 2D)
+			if(_flat_dist_sq(pos, base_pos) < (Dmax-2*D)*(Dmax-2*D)):
+				new_state["KILL"] = true
+				return new_state
+			
+			# go towards base pos in current plane
+			var target_pos = base_pos
+			target_pos.y = pos.y
+			new_state["position"] = pos + (target_pos-pos).normalized() * D
 			return new_state
 		
 		# look drones below !	
