@@ -1,14 +1,9 @@
-[gd_scene load_steps=27 format=3 uid="uid://bu6x4bfchxkdv"]
+[gd_scene load_steps=10 format=3 uid="uid://bu6x4bfchxkdv"]
 
-[ext_resource type="Script" path="res://Sim/Scripts/CamControls.gd" id="1_d6xna"]
 [ext_resource type="Script" path="res://Sim/Scripts/3DPlayground.gd" id="1_o65i0"]
-[ext_resource type="Script" path="res://Sim/Scripts/MainView.gd" id="2_3aya7"]
-[ext_resource type="Script" path="res://Sim/Scripts/DroneManager/DroneManager3D.gd" id="2_h5bxm"]
+[ext_resource type="PackedScene" uid="uid://bts548ana0mac" path="res://Sim/SimulationView.tscn" id="2_ctlmb"]
 [ext_resource type="PackedScene" uid="uid://du28do6d78ulu" path="res://Sim/GUI/GizmoWidget.tscn" id="2_hbfaq"]
 [ext_resource type="Shader" path="res://Sim/GUI/Gizmo.gdshader" id="2_hqret"]
-[ext_resource type="Texture2D" uid="uid://c4eca4yln2mr0" path="res://Sim/Textures/_1m x 1m_dark.png" id="3_2bnwl"]
-[ext_resource type="Script" path="res://Sim/Scripts/Lines3D.gd" id="4_2kxkj"]
-[ext_resource type="Texture2D" uid="uid://b373k862pdx4a" path="res://Sim/Textures/_1m x 1m_orange.png" id="5_5xvjl"]
 [ext_resource type="Texture2D" uid="uid://c4ftbgjy762m7" path="res://Sim/GUI/Icons/pause.svg" id="10_dds0u"]
 [ext_resource type="Texture2D" uid="uid://b5h7da0s2m7by" path="res://Sim/GUI/Icons/step.svg" id="11_cyna1"]
 [ext_resource type="Texture2D" uid="uid://btedf1m4d1fvh" path="res://Sim/GUI/Icons/stop.svg" id="12_qdey6"]
@@ -16,70 +11,18 @@
 [sub_resource type="Theme" id="Theme_m7sw8"]
 default_font_size = 20
 
-[sub_resource type="PhysicalSkyMaterial" id="PhysicalSkyMaterial_cbrid"]
-ground_color = Color(0.466667, 0.368627, 0.254902, 1)
-energy_multiplier = 1.3
-
-[sub_resource type="Sky" id="Sky_5nc5a"]
-sky_material = SubResource("PhysicalSkyMaterial_cbrid")
-
-[sub_resource type="Environment" id="Environment_rwdsu"]
-background_mode = 2
-sky = SubResource("Sky_5nc5a")
-tonemap_mode = 3
-tonemap_exposure = 1.5
-tonemap_white = 2.0
-glow_hdr_threshold = 2.0
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_hwn4p"]
-albedo_color = Color(0.839216, 0.839216, 0.839216, 1)
-albedo_texture = ExtResource("3_2bnwl")
-uv1_triplanar = true
-uv1_world_triplanar = true
-
-[sub_resource type="PlaneMesh" id="PlaneMesh_jpx7t"]
-material = SubResource("StandardMaterial3D_hwn4p")
-size = Vector2(500, 500)
-
-[sub_resource type="SphereShape3D" id="SphereShape3D_d246o"]
-radius = 2.1
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_j24ev"]
-albedo_texture = ExtResource("5_5xvjl")
-uv1_triplanar = true
-uv1_world_triplanar = true
-
-[sub_resource type="BoxMesh" id="BoxMesh_wo8el"]
-material = SubResource("StandardMaterial3D_j24ev")
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_3mm7y"]
-albedo_texture = ExtResource("5_5xvjl")
-uv1_triplanar = true
-uv1_world_triplanar = true
-
-[sub_resource type="PrismMesh" id="PrismMesh_d7chh"]
-material = SubResource("StandardMaterial3D_3mm7y")
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_rl2ih"]
-transparency = 1
-shading_mode = 0
-albedo_color = Color(0, 0, 1, 0.498039)
-
-[sub_resource type="SphereMesh" id="SphereMesh_3i8wc"]
-material = SubResource("StandardMaterial3D_rl2ih")
-radius = 0.15
-height = 0.3
-
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_hh4va"]
 shader = ExtResource("2_hqret")
 shader_parameter/opacity = 0.25
 
-[node name="3DPlayground" type="CanvasLayer" node_paths=PackedStringArray("mainView", "fps_label", "protocol_choice", "graph_choice")]
+[node name="3DPlayground" type="CanvasLayer" node_paths=PackedStringArray("mainView", "fps_label", "protocol_choice", "graph_choice", "scene_tree", "stats_panel")]
 script = ExtResource("1_o65i0")
-mainView = NodePath("GUI/VBoxContainer/HSplitContainer/3DView/MainViewContainer/MainView")
-fps_label = NodePath("GUI/VBoxContainer/HSplitContainer/3DView/StatsPanel/VBoxContainer/FpsLabel")
+mainView = NodePath("GUI/VBoxContainer/HSplitContainer/HSplitContainer/3DView/MainViewContainer/MainView")
+fps_label = NodePath("GUI/VBoxContainer/HSplitContainer/HSplitContainer/3DView/StatsPanel/VBoxContainer/FpsLabel")
 protocol_choice = NodePath("GUI/VBoxContainer/HSplitContainer/OptionsPanel/VBoxContainer/ProtocolChoice")
 graph_choice = NodePath("GUI/VBoxContainer/HSplitContainer/OptionsPanel/VBoxContainer/GraphChoice")
+scene_tree = NodePath("GUI/VBoxContainer/HSplitContainer/HSplitContainer/Panel/VBoxContainer/Tree")
+stats_panel = NodePath("GUI/VBoxContainer/HSplitContainer/HSplitContainer/3DView/StatsPanel")
 
 [node name="GUI" type="Panel" parent="."]
 anchors_preset = 15
@@ -145,13 +88,27 @@ item_5/id = 5
 [node name="HSplitContainer" type="HSplitContainer" parent="GUI/VBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 3
-split_offset = 724
+split_offset = 1670
 
-[node name="3DView" type="Control" parent="GUI/VBoxContainer/HSplitContainer"]
+[node name="HSplitContainer" type="HSplitContainer" parent="GUI/VBoxContainer/HSplitContainer"]
+layout_mode = 2
+split_offset = 250
+
+[node name="Panel" type="PanelContainer" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer"]
+layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer/Panel"]
+layout_mode = 2
+
+[node name="Tree" type="Tree" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer/Panel/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="3DView" type="Control" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="MainViewContainer" type="SubViewportContainer" parent="GUI/VBoxContainer/HSplitContainer/3DView"]
+[node name="MainViewContainer" type="SubViewportContainer" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer/3DView"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -160,69 +117,10 @@ grow_horizontal = 2
 grow_vertical = 2
 stretch = true
 
-[node name="MainView" type="SubViewport" parent="GUI/VBoxContainer/HSplitContainer/3DView/MainViewContainer"]
-handle_input_locally = false
-msaa_3d = 2
-screen_space_aa = 1
-size = Vector2i(1678, 1040)
-render_target_update_mode = 4
-script = ExtResource("2_3aya7")
+[node name="MainView" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer/3DView/MainViewContainer" instance=ExtResource("2_ctlmb")]
+size = Vector2i(1408, 1040)
 
-[node name="Camera3D" type="Camera3D" parent="GUI/VBoxContainer/HSplitContainer/3DView/MainViewContainer/MainView"]
-transform = Transform3D(1, 0, 0, 0, 0.5, 0.866025, 0, -0.866025, 0.5, 0, 6, 3)
-current = true
-fov = 90.0
-size = 10.0
-far = 100.0
-script = ExtResource("1_d6xna")
-
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="GUI/VBoxContainer/HSplitContainer/3DView/MainViewContainer/MainView"]
-transform = Transform3D(0.918329, 0.0705351, 0.389483, -0.395818, 0.163647, 0.90363, 0, -0.983994, 0.178201, 4.70799, 4.6752, 0.156376)
-shadow_enabled = true
-directional_shadow_max_distance = 50.0
-
-[node name="WorldEnvironment" type="WorldEnvironment" parent="GUI/VBoxContainer/HSplitContainer/3DView/MainViewContainer/MainView"]
-environment = SubResource("Environment_rwdsu")
-
-[node name="Floor" type="MeshInstance3D" parent="GUI/VBoxContainer/HSplitContainer/3DView/MainViewContainer/MainView"]
-mesh = SubResource("PlaneMesh_jpx7t")
-skeleton = NodePath("../../../../../../..")
-
-[node name="3DDroneManager" type="Node3D" parent="GUI/VBoxContainer/HSplitContainer/3DView/MainViewContainer/MainView"]
-script = ExtResource("2_h5bxm")
-
-[node name="Base" type="Node3D" parent="GUI/VBoxContainer/HSplitContainer/3DView/MainViewContainer/MainView/3DDroneManager"]
-
-[node name="Detection" type="Area3D" parent="GUI/VBoxContainer/HSplitContainer/3DView/MainViewContainer/MainView/3DDroneManager/Base"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.00312996, 2.37709, -0.00656414)
-collision_layer = 2
-collision_mask = 2
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="GUI/VBoxContainer/HSplitContainer/3DView/MainViewContainer/MainView/3DDroneManager/Base/Detection"]
-shape = SubResource("SphereShape3D_d246o")
-
-[node name="Visualization" type="Node3D" parent="GUI/VBoxContainer/HSplitContainer/3DView/MainViewContainer/MainView/3DDroneManager/Base/Detection"]
-visible = false
-
-[node name="model" type="MeshInstance3D" parent="GUI/VBoxContainer/HSplitContainer/3DView/MainViewContainer/MainView/3DDroneManager/Base"]
-transform = Transform3D(1.5, 0, 0, 0, 1, 0, 0, 0, 2, 0, 0.5, 0)
-mesh = SubResource("BoxMesh_wo8el")
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="GUI/VBoxContainer/HSplitContainer/3DView/MainViewContainer/MainView/3DDroneManager/Base/model"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
-mesh = SubResource("PrismMesh_d7chh")
-
-[node name="Drones" type="Node3D" parent="GUI/VBoxContainer/HSplitContainer/3DView/MainViewContainer/MainView/3DDroneManager"]
-
-[node name="Lines3D" type="Node3D" parent="GUI/VBoxContainer/HSplitContainer/3DView/MainViewContainer/MainView/3DDroneManager"]
-script = ExtResource("4_2kxkj")
-
-[node name="SearchTeam" type="Node3D" parent="GUI/VBoxContainer/HSplitContainer/3DView/MainViewContainer/MainView/3DDroneManager"]
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="GUI/VBoxContainer/HSplitContainer/3DView/MainViewContainer/MainView/3DDroneManager/SearchTeam"]
-mesh = SubResource("SphereMesh_3i8wc")
-
-[node name="GizmoPanel" type="PanelContainer" parent="GUI/VBoxContainer/HSplitContainer/3DView"]
+[node name="GizmoPanel" type="PanelContainer" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer/3DView"]
 material = SubResource("ShaderMaterial_hh4va")
 layout_mode = 1
 anchors_preset = 1
@@ -234,10 +132,10 @@ offset_right = -16.0
 offset_bottom = 144.0
 grow_horizontal = 0
 
-[node name="SubViewportContainer" type="SubViewportContainer" parent="GUI/VBoxContainer/HSplitContainer/3DView/GizmoPanel"]
+[node name="SubViewportContainer" type="SubViewportContainer" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer/3DView/GizmoPanel"]
 layout_mode = 2
 
-[node name="GizmoWidget" parent="GUI/VBoxContainer/HSplitContainer/3DView/GizmoPanel/SubViewportContainer" node_paths=PackedStringArray("_main_cam") instance=ExtResource("2_hbfaq")]
+[node name="GizmoWidget" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer/3DView/GizmoPanel/SubViewportContainer" node_paths=PackedStringArray("_main_cam") instance=ExtResource("2_hbfaq")]
 own_world_3d = true
 transparent_bg = true
 handle_input_locally = false
@@ -246,7 +144,7 @@ screen_space_aa = 1
 render_target_update_mode = 4
 _main_cam = NodePath("../../../MainViewContainer/MainView/Camera3D")
 
-[node name="StatsPanel" type="PanelContainer" parent="GUI/VBoxContainer/HSplitContainer/3DView"]
+[node name="StatsPanel" type="PanelContainer" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer/3DView"]
 layout_mode = 1
 anchors_preset = 2
 anchor_top = 1.0
@@ -257,26 +155,26 @@ offset_right = 126.0
 offset_bottom = -16.0
 grow_vertical = 0
 
-[node name="VBoxContainer" type="VBoxContainer" parent="GUI/VBoxContainer/HSplitContainer/3DView/StatsPanel"]
+[node name="VBoxContainer" type="VBoxContainer" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer/3DView/StatsPanel"]
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
 
-[node name="Label2" type="Label" parent="GUI/VBoxContainer/HSplitContainer/3DView/StatsPanel/VBoxContainer"]
+[node name="Label2" type="Label" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer/3DView/StatsPanel/VBoxContainer"]
 layout_mode = 2
 text = "Satistics"
 uppercase = true
 
-[node name="HSeparator" type="HSeparator" parent="GUI/VBoxContainer/HSplitContainer/3DView/StatsPanel/VBoxContainer"]
+[node name="HSeparator" type="HSeparator" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer/3DView/StatsPanel/VBoxContainer"]
 layout_mode = 2
 
-[node name="FpsLabel" type="Label" parent="GUI/VBoxContainer/HSplitContainer/3DView/StatsPanel/VBoxContainer"]
+[node name="FpsLabel" type="Label" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer/3DView/StatsPanel/VBoxContainer"]
 layout_mode = 2
 text = "60 FPS"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="PlaybackPanel" type="PanelContainer" parent="GUI/VBoxContainer/HSplitContainer/3DView"]
+[node name="PlaybackPanel" type="PanelContainer" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer/3DView"]
 layout_mode = 1
 anchors_preset = 7
 anchor_left = 0.5
@@ -290,25 +188,25 @@ offset_bottom = -16.0
 grow_horizontal = 2
 grow_vertical = 0
 
-[node name="HBoxContainer" type="HBoxContainer" parent="GUI/VBoxContainer/HSplitContainer/3DView/PlaybackPanel"]
+[node name="HBoxContainer" type="HBoxContainer" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer/3DView/PlaybackPanel"]
 layout_mode = 2
 alignment = 1
 
-[node name="PlayButton" type="Button" parent="GUI/VBoxContainer/HSplitContainer/3DView/PlaybackPanel/HBoxContainer"]
+[node name="PlayButton" type="Button" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer/3DView/PlaybackPanel/HBoxContainer"]
 custom_minimum_size = Vector2(64, 64)
 layout_mode = 2
 icon = ExtResource("10_dds0u")
 icon_alignment = 1
 expand_icon = true
 
-[node name="StepButton" type="Button" parent="GUI/VBoxContainer/HSplitContainer/3DView/PlaybackPanel/HBoxContainer"]
+[node name="StepButton" type="Button" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer/3DView/PlaybackPanel/HBoxContainer"]
 custom_minimum_size = Vector2(64, 64)
 layout_mode = 2
 icon = ExtResource("11_cyna1")
 icon_alignment = 1
 expand_icon = true
 
-[node name="ResetButton" type="Button" parent="GUI/VBoxContainer/HSplitContainer/3DView/PlaybackPanel/HBoxContainer"]
+[node name="ResetButton" type="Button" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer/3DView/PlaybackPanel/HBoxContainer"]
 custom_minimum_size = Vector2(64, 64)
 layout_mode = 2
 icon = ExtResource("12_qdey6")
@@ -364,10 +262,11 @@ text = "Kill Protocol"
 
 [connection signal="id_pressed" from="GUI/VBoxContainer/MenuBarPanel/MenuBar/Preferences" to="." method="_on_preferences_id_pressed"]
 [connection signal="id_pressed" from="GUI/VBoxContainer/MenuBarPanel/MenuBar/View" to="." method="_on_view_id_pressed"]
-[connection signal="perspective_cam" from="GUI/VBoxContainer/HSplitContainer/3DView/MainViewContainer/MainView" to="." method="_on_perspective_cam"]
-[connection signal="perspective_cam" from="GUI/VBoxContainer/HSplitContainer/3DView/MainViewContainer/MainView/Camera3D" to="GUI/VBoxContainer/HSplitContainer/3DView/MainViewContainer/MainView" method="_on_camera_3d_perspective_cam"]
-[connection signal="pressed" from="GUI/VBoxContainer/HSplitContainer/3DView/PlaybackPanel/HBoxContainer/PlayButton" to="." method="_on_play_button_pressed"]
-[connection signal="pressed" from="GUI/VBoxContainer/HSplitContainer/3DView/PlaybackPanel/HBoxContainer/StepButton" to="." method="_on_step_button_pressed"]
-[connection signal="pressed" from="GUI/VBoxContainer/HSplitContainer/3DView/PlaybackPanel/HBoxContainer/ResetButton" to="." method="_on_reset_button_pressed"]
+[connection signal="add_drone" from="GUI/VBoxContainer/HSplitContainer/HSplitContainer/3DView/MainViewContainer/MainView" to="." method="_on_main_view_add_drone"]
+[connection signal="perspective_cam" from="GUI/VBoxContainer/HSplitContainer/HSplitContainer/3DView/MainViewContainer/MainView" to="." method="_on_perspective_cam"]
+[connection signal="remove_drone" from="GUI/VBoxContainer/HSplitContainer/HSplitContainer/3DView/MainViewContainer/MainView" to="." method="_on_main_view_remove_drone"]
+[connection signal="pressed" from="GUI/VBoxContainer/HSplitContainer/HSplitContainer/3DView/PlaybackPanel/HBoxContainer/PlayButton" to="." method="_on_play_button_pressed"]
+[connection signal="pressed" from="GUI/VBoxContainer/HSplitContainer/HSplitContainer/3DView/PlaybackPanel/HBoxContainer/StepButton" to="." method="_on_step_button_pressed"]
+[connection signal="pressed" from="GUI/VBoxContainer/HSplitContainer/HSplitContainer/3DView/PlaybackPanel/HBoxContainer/ResetButton" to="." method="_on_reset_button_pressed"]
 [connection signal="pressed" from="GUI/VBoxContainer/HSplitContainer/OptionsPanel/VBoxContainer/KillInactive" to="." method="_on_kill_inactive_pressed"]
 [connection signal="value_changed" from="GUI/VBoxContainer/HSplitContainer/OptionsPanel/VBoxContainer/MoveTimeSlider" to="." method="_on_move_time_value_changed"]

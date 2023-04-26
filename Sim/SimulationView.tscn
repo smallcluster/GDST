@@ -1,0 +1,128 @@
+[gd_scene load_steps=19 format=3 uid="uid://bts548ana0mac"]
+
+[ext_resource type="Script" path="res://Sim/Scripts/MainView.gd" id="1_gc86r"]
+[ext_resource type="Script" path="res://Sim/Scripts/CamControls.gd" id="2_6gnym"]
+[ext_resource type="Texture2D" uid="uid://c4eca4yln2mr0" path="res://Sim/Textures/_1m x 1m_dark.png" id="3_yl6wq"]
+[ext_resource type="Script" path="res://Sim/Scripts/DroneManager/DroneManager3D.gd" id="4_ehkx3"]
+[ext_resource type="Texture2D" uid="uid://b373k862pdx4a" path="res://Sim/Textures/_1m x 1m_orange.png" id="5_se7p8"]
+[ext_resource type="Script" path="res://Sim/Scripts/Lines3D.gd" id="6_kkqa8"]
+
+[sub_resource type="PhysicalSkyMaterial" id="PhysicalSkyMaterial_cbrid"]
+ground_color = Color(0.466667, 0.368627, 0.254902, 1)
+energy_multiplier = 1.3
+
+[sub_resource type="Sky" id="Sky_5nc5a"]
+sky_material = SubResource("PhysicalSkyMaterial_cbrid")
+
+[sub_resource type="Environment" id="Environment_rwdsu"]
+background_mode = 2
+sky = SubResource("Sky_5nc5a")
+tonemap_mode = 3
+tonemap_exposure = 1.5
+tonemap_white = 2.0
+glow_hdr_threshold = 2.0
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_hwn4p"]
+albedo_color = Color(0.839216, 0.839216, 0.839216, 1)
+albedo_texture = ExtResource("3_yl6wq")
+uv1_triplanar = true
+uv1_world_triplanar = true
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_jpx7t"]
+material = SubResource("StandardMaterial3D_hwn4p")
+size = Vector2(500, 500)
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_d246o"]
+radius = 2.1
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_j24ev"]
+albedo_texture = ExtResource("5_se7p8")
+uv1_triplanar = true
+uv1_world_triplanar = true
+
+[sub_resource type="BoxMesh" id="BoxMesh_wo8el"]
+material = SubResource("StandardMaterial3D_j24ev")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_3mm7y"]
+albedo_texture = ExtResource("5_se7p8")
+uv1_triplanar = true
+uv1_world_triplanar = true
+
+[sub_resource type="PrismMesh" id="PrismMesh_d7chh"]
+material = SubResource("StandardMaterial3D_3mm7y")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_rl2ih"]
+transparency = 1
+shading_mode = 0
+albedo_color = Color(0, 0, 1, 0.498039)
+
+[sub_resource type="SphereMesh" id="SphereMesh_3i8wc"]
+material = SubResource("StandardMaterial3D_rl2ih")
+radius = 0.15
+height = 0.3
+
+[node name="MainView" type="SubViewport"]
+handle_input_locally = false
+msaa_3d = 2
+screen_space_aa = 1
+size = Vector2i(1678, 1040)
+render_target_update_mode = 4
+script = ExtResource("1_gc86r")
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.5, 0.866025, 0, -0.866025, 0.5, 0, 6, 3)
+current = true
+fov = 90.0
+size = 10.0
+far = 100.0
+script = ExtResource("2_6gnym")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.918329, 0.0705351, 0.389483, -0.395818, 0.163647, 0.90363, 0, -0.983994, 0.178201, 4.70799, 4.6752, 0.156376)
+shadow_enabled = true
+directional_shadow_max_distance = 50.0
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_rwdsu")
+
+[node name="Floor" type="MeshInstance3D" parent="."]
+mesh = SubResource("PlaneMesh_jpx7t")
+skeleton = NodePath("../../../../../../..")
+
+[node name="3DDroneManager" type="Node3D" parent="."]
+script = ExtResource("4_ehkx3")
+
+[node name="Base" type="Node3D" parent="3DDroneManager"]
+
+[node name="Detection" type="Area3D" parent="3DDroneManager/Base"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.00312996, 2.37709, -0.00656414)
+collision_layer = 2
+collision_mask = 2
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="3DDroneManager/Base/Detection"]
+shape = SubResource("SphereShape3D_d246o")
+
+[node name="Visualization" type="Node3D" parent="3DDroneManager/Base/Detection"]
+visible = false
+
+[node name="model" type="MeshInstance3D" parent="3DDroneManager/Base"]
+transform = Transform3D(1.5, 0, 0, 0, 1, 0, 0, 0, 2, 0, 0.5, 0)
+mesh = SubResource("BoxMesh_wo8el")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="3DDroneManager/Base/model"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+mesh = SubResource("PrismMesh_d7chh")
+
+[node name="Drones" type="Node3D" parent="3DDroneManager"]
+
+[node name="Lines3D" type="Node3D" parent="3DDroneManager"]
+script = ExtResource("6_kkqa8")
+
+[node name="SearchTeam" type="Node3D" parent="3DDroneManager"]
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="3DDroneManager/SearchTeam"]
+mesh = SubResource("SphereMesh_3i8wc")
+
+[connection signal="perspective_cam" from="Camera3D" to="." method="_on_camera_3d_perspective_cam"]
+[connection signal="add_drone" from="3DDroneManager" to="." method="_on_3d_drone_manager_add_drone"]
+[connection signal="remove_drone" from="3DDroneManager" to="." method="_on_3d_drone_manager_remove_drone"]

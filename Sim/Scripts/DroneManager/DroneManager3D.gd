@@ -4,6 +4,9 @@ class_name DroneManager3D
 var show_vision := false : set = _set_show_vision
 var movement_time := 0.05
 
+signal add_drone(id)
+signal remove_drone(id)
+
 @onready var _drones = $Drones
 @onready var _lines : Lines3D = $Lines3D as Lines3D
 @onready var _base_detection : Area3D = $Base/Detection
@@ -88,19 +91,6 @@ func _physics_process(delta):
 func _perform_actions() -> bool:
 	var skip_frame := false
 	
-	
-	# Request switch protocol
-	if _switch_protocol != -1:
-		_protocol = ProtocolFactory.build(_switch_protocol)
-		
-		for d in _drones.get_children():
-			d.set_vision_shape(_protocol.get_vision_shape())
-			d.set_vision_meshes(_protocol.get_vision_meshes())
-			d.drone.state = _protocol.migrate_state(d.drone.state)
-			
-		_switch_protocol = -1
-		skip_frame = true
-		
 	# reset simulation
 	if _request_reset:	
 		_target_vis.position = $Base.position
@@ -108,7 +98,17 @@ func _perform_actions() -> bool:
 		_next_id = 0
 		for d in _drones.get_children():
 			d.queue_free()
-			_search_drone = null
+		_search_drone = null
+		skip_frame = true
+	
+	# Request switch protocol
+	if _switch_protocol != -1:
+		_protocol = ProtocolFactory.build(_switch_protocol)
+		for d in _drones.get_children():
+			d.set_vision_shape(_protocol.get_vision_shape())
+			d.set_vision_meshes(_protocol.get_vision_meshes())
+			d.drone.state = _protocol.migrate_state(d.drone.state)
+		_switch_protocol = -1
 		skip_frame = true
 		
 	# kill inactive
@@ -116,6 +116,7 @@ func _perform_actions() -> bool:
 		_kill_inactive = false
 		for d in _drones.get_children():
 			if not d.drone.state["active"]:
+				emit_signal("remove_drone", d.drone.state["id"])
 				d.queue_free()
 		skip_frame = true
 		
@@ -140,6 +141,7 @@ func _perform_actions() -> bool:
 	for d in drones:
 		# Remove killed drones
 		if d.drone.state["KILL"]:
+			emit_signal("remove_drone", d.drone.state["id"])
 			d.queue_free()
 			skip_frame = true
 			continue
@@ -186,7 +188,8 @@ func _draw_links() -> void:
 		if not d.drone.state["active"]:
 			continue
 			
-		var others : Array = d.get_neighbours().filter(func(x): return x.drone.state["active"] and x.drone.state["id"] < d.drone.state["id"])
+		var others : Array = d.get_neighbours().filter(func(x): return x.drone.state["active"] \
+													and x.drone.state["id"] < d.drone.state["id"])
 			
 		var others_state = others.map(func(x): return x.drone.state)
 		
@@ -197,7 +200,8 @@ func _draw_links() -> void:
 			points.append(d.position)
 			points.append(d2.position)
 	
-	var others = _base_detection.get_overlapping_bodies().filter(func(x): return x.drone.state["active"])
+	var others = _base_detection.get_overlapping_bodies().filter(func(x): return \
+																			x.drone.state["active"])
 	var others_state = others.map(func(x): return x.drone.state)
 	
 	if not others_state.is_empty():
@@ -241,7 +245,8 @@ func _deploy_new_drone(pos : Vector3) -> void:
 	if _next_id == 0:
 		_search_drone = d
 		_search_target_pos = Vector2(pos.x, pos.z)
-	_next_id += 1
 	_drones.add_child(d)
+	emit_signal("add_drone", _next_id)
+	_next_id += 1
 	
 

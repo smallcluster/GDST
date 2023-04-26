@@ -23,8 +23,8 @@ func get_default_state() -> Dictionary:
 		"light": false,
 		"returning" : false,
 		
-		# GODOT SIMULATION SPECIFIC (to unload drone object)
-		"KILL" : false
+		# -- GODOT SIMULATION SPECIFIC --
+		"KILL" : false # To unload drone object
 	}
 	
 func get_defaults_from_state(state : Dictionary) -> Dictionary:
@@ -36,8 +36,8 @@ func get_defaults_from_state(state : Dictionary) -> Dictionary:
 		"light": false,
 		"returning" : false,
 	
-		# GODOT SIMULATION SPECIFIC (to unload drone object)
-		"KILL" : state["KILL"]
+		# -- GODOT SIMULATION SPECIFIC --
+		"KILL" : state["KILL"] # To unload drone object
 	}
 	
 func look(state : Dictionary, neighbours : Array[Drone]) -> Array:

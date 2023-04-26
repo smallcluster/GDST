@@ -3,8 +3,11 @@ extends CanvasLayer
 @export var fps_label : Label
 @export var protocol_choice : MenuButton
 @export var graph_choice : MenuButton
+@export var scene_tree : Tree
+@export var stats_panel : PanelContainer
 
 var _play_simulation := true
+var _scene_tree_root : TreeItem
 
 
 # -- GUI EVENTS --
@@ -37,7 +40,10 @@ func _ready():
 		mainView.draw_directed_graph(index == 1)
 	)
 	
-	
+	_scene_tree_root = scene_tree.create_item()
+	_scene_tree_root.set_text(0, "Drones")
+
+
 	
 func _process(delta):
 	fps_label.text = str(Engine.get_frames_per_second()) + " FPS"
@@ -73,7 +79,7 @@ func _on_preferences_id_pressed(id):
 			mainView.screen_space_aa = Viewport.SCREEN_SPACE_AA_DISABLED
 	# Statistics
 	elif id == 3:
-		$"GUI/VBoxContainer/HSplitContainer/3DView/StatsPanel".visible = checked
+		stats_panel.visible = checked
 
 func _on_view_id_pressed(id):
 	var items : PopupMenu = $GUI/VBoxContainer/MenuBarPanel/MenuBar/View
@@ -106,7 +112,7 @@ func _on_play_button_pressed():
 	_update_play_button()
 	
 func _update_play_button():
-	var button := $"GUI/VBoxContainer/HSplitContainer/3DView/PlaybackPanel/HBoxContainer/PlayButton"
+	var button := $"GUI/VBoxContainer/HSplitContainer/HSplitContainer/3DView/PlaybackPanel/HBoxContainer/PlayButton"
 	if _play_simulation:
 		button.icon = load("res://Sim/GUI/Icons/pause.svg")
 	else:
@@ -125,4 +131,19 @@ func _on_reset_button_pressed():
 	mainView.run_simulation(false)
 	_play_simulation = false
 	_update_play_button()
+	# Clear drone list
+	scene_tree.clear()
+	_scene_tree_root = scene_tree.create_item()
+	_scene_tree_root.set_text(0, "Drones")
 	
+	
+func _on_main_view_add_drone(id):
+	scene_tree.create_item(_scene_tree_root).set_text(0, "drone "+str(id))
+	_scene_tree_root.set_text(0, "Drones ("+str(_scene_tree_root.get_child_count())+")")
+
+func _on_main_view_remove_drone(id):
+	for t in _scene_tree_root.get_children():
+		if t.get_text(0) == "drone "+str(id):
+			_scene_tree_root.remove_child(t)
+			break
+	_scene_tree_root.set_text(0, "Drones ("+str(_scene_tree_root.get_child_count())+")")

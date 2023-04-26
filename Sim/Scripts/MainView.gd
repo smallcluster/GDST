@@ -1,6 +1,8 @@
 extends SubViewport
 
 signal perspective_cam
+signal add_drone(id)
+signal remove_drone(id)
 
 @onready var _drone_manager : DroneManager3D = $"3DDroneManager"
 @onready var _cam : Camera3D = $Camera3D
@@ -89,3 +91,11 @@ func draw_directed_graph(val : bool) -> void:
 
 func _on_camera_3d_perspective_cam() -> void:
 	emit_signal("perspective_cam")# Replace with function body.
+
+
+func _on_3d_drone_manager_add_drone(id):
+	emit_signal("add_drone", id)
+
+
+func _on_3d_drone_manager_remove_drone(id):
+	emit_signal("remove_drone", id)
