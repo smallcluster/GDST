@@ -3,6 +3,7 @@ extends SubViewport
 signal perspective_cam
 signal add_drone(id)
 signal remove_drone(id)
+signal update_drone_state(state)
 
 @onready var _drone_manager : DroneManager3D = $"3DDroneManager"
 @onready var _cam : Camera3D = $Camera3D
@@ -99,3 +100,7 @@ func _on_3d_drone_manager_add_drone(id):
 
 func _on_3d_drone_manager_remove_drone(id):
 	emit_signal("remove_drone", id)
+	
+
+func _on_3d_drone_manager_update_drone_state(state):
+	emit_signal("update_drone_state", state)

@@ -6,6 +6,7 @@ var movement_time := 0.05
 
 signal add_drone(id)
 signal remove_drone(id)
+signal update_drone_state(state)
 
 @onready var _drones = $Drones
 @onready var _lines : Lines3D = $Lines3D as Lines3D
@@ -62,20 +63,22 @@ func _ready():
 	_drone_manager = DroneManager.new()
 	_update_radius()
 	
-
-func _physics_process(delta):
+func _process(delta):
 	_lines.clear() # clear previous drawing
 	
-	# DRAW CONNEXION LINKS AND SEARCH TEAM POSITION
+	# DRAW SEARCH TEAM POSITION
 	#-----------------------------------------------------------------------------------------------
-	
-	_draw_links()
-	# Draw beacon from search_team target
 	if _search_drone:
 		var s := Vector3(_search_target_pos.x,0,_search_target_pos.y)
 		var e := Vector3(_search_target_pos.x,_base_detection.position.y,_search_target_pos.y)
 		_lines.create_line(s, e, Color.BLUE)
 		_target_vis.position = Vector3(_search_target_pos.x, 0, _search_target_pos.y)
+	
+	#DRAW CONNEXION LINKS 
+	#-----------------------------------------------------------------------------------------------
+	_draw_links()
+
+func _physics_process(delta):
 	
 	# UPDATE SIMULATION
 	#-----------------------------------------------------------------------------------------------
@@ -85,7 +88,7 @@ func _physics_process(delta):
 		if (_run_simulation or _run_one_step):
 			_simulation_step()
 			_run_one_step = false
-		
+	
 		
 # Return if current physics frame needs to be skiped
 func _perform_actions() -> bool:
@@ -148,6 +151,8 @@ func _perform_actions() -> bool:
 		# show/hide inactive drones
 		if not d.drone.state["active"]:
 			d.visible = not _hide_inactive 
+			
+	
 				
 	return skip_frame
 		
@@ -165,18 +170,29 @@ func _simulation_step() -> void:
 		offset = offset.normalized() * clamp(dist, 0, _protocol.get_max_move_dist())
 		_search_drone.drone.state["position"] += Vector3(offset.x, 0, offset.y)
 	
-
 	# simulates all other drones
 	var drones3D = _drones.get_children()
 	var drones : Array[Drone]
 	drones.assign(drones3D.map(func(x): return x.drone))
+	
+	
+	
 	_drone_manager.simulate(drones, _protocol, _base_detection.position)
+	
+	
+	
+	# send new state to gui
+	for d in drones:
+		emit_signal("update_drone_state", d.state)
+		
+	
 	
 	# Update visuals, move and wait for all movement to finish
 	var tweens = drones3D.map(func(x): return x.update(movement_time))
 	for t in tweens:
 		await t.finished
-				
+		
+	
 	_simulating = false # Release lock
 	
 				
@@ -247,6 +263,7 @@ func _deploy_new_drone(pos : Vector3) -> void:
 		_search_target_pos = Vector2(pos.x, pos.z)
 	_drones.add_child(d)
 	emit_signal("add_drone", _next_id)
+	emit_signal("update_drone_state", state)
 	_next_id += 1
 	
 

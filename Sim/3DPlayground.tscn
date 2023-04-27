@@ -15,13 +15,14 @@ default_font_size = 20
 shader = ExtResource("2_hqret")
 shader_parameter/opacity = 0.25
 
-[node name="3DPlayground" type="CanvasLayer" node_paths=PackedStringArray("mainView", "fps_label", "protocol_choice", "graph_choice", "scene_tree", "stats_panel")]
+[node name="3DPlayground" type="CanvasLayer" node_paths=PackedStringArray("mainView", "fps_label", "max_height_label", "protocol_choice", "graph_choice", "scene_tree", "stats_panel")]
 script = ExtResource("1_o65i0")
 mainView = NodePath("GUI/VBoxContainer/HSplitContainer/HSplitContainer/3DView/MainViewContainer/MainView")
 fps_label = NodePath("GUI/VBoxContainer/HSplitContainer/HSplitContainer/3DView/StatsPanel/VBoxContainer/FpsLabel")
+max_height_label = NodePath("GUI/VBoxContainer/HSplitContainer/HSplitContainer/3DView/StatsPanel/VBoxContainer/MaxHeightLabel")
 protocol_choice = NodePath("GUI/VBoxContainer/HSplitContainer/OptionsPanel/VBoxContainer/ProtocolChoice")
 graph_choice = NodePath("GUI/VBoxContainer/HSplitContainer/OptionsPanel/VBoxContainer/GraphChoice")
-scene_tree = NodePath("GUI/VBoxContainer/HSplitContainer/HSplitContainer/Panel/VBoxContainer/Tree")
+scene_tree = NodePath("GUI/VBoxContainer/HSplitContainer/HSplitContainer/Panel/Inspector/VBoxContainer/Tree")
 stats_panel = NodePath("GUI/VBoxContainer/HSplitContainer/HSplitContainer/3DView/StatsPanel")
 
 [node name="GUI" type="Panel" parent="."]
@@ -94,15 +95,24 @@ split_offset = 1670
 layout_mode = 2
 split_offset = 250
 
-[node name="Panel" type="PanelContainer" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer"]
+[node name="Panel" type="TabContainer" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer"]
 layout_mode = 2
 
-[node name="VBoxContainer" type="VBoxContainer" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer/Panel"]
+[node name="Inspector" type="TabBar" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer/Panel"]
 layout_mode = 2
 
-[node name="Tree" type="Tree" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer/Panel/VBoxContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer/Panel/Inspector"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Tree" type="Tree" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer/Panel/Inspector/VBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 3
+columns = 2
 
 [node name="3DView" type="Control" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer"]
 layout_mode = 2
@@ -163,6 +173,7 @@ size_flags_vertical = 4
 [node name="Label2" type="Label" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer/3DView/StatsPanel/VBoxContainer"]
 layout_mode = 2
 text = "Satistics"
+horizontal_alignment = 1
 uppercase = true
 
 [node name="HSeparator" type="HSeparator" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer/3DView/StatsPanel/VBoxContainer"]
@@ -172,6 +183,11 @@ layout_mode = 2
 layout_mode = 2
 text = "60 FPS"
 horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="MaxHeightLabel" type="Label" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer/3DView/StatsPanel/VBoxContainer"]
+layout_mode = 2
+text = "Largest height:"
 vertical_alignment = 1
 
 [node name="PlaybackPanel" type="PanelContainer" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer/3DView"]
@@ -265,6 +281,7 @@ text = "Kill Protocol"
 [connection signal="add_drone" from="GUI/VBoxContainer/HSplitContainer/HSplitContainer/3DView/MainViewContainer/MainView" to="." method="_on_main_view_add_drone"]
 [connection signal="perspective_cam" from="GUI/VBoxContainer/HSplitContainer/HSplitContainer/3DView/MainViewContainer/MainView" to="." method="_on_perspective_cam"]
 [connection signal="remove_drone" from="GUI/VBoxContainer/HSplitContainer/HSplitContainer/3DView/MainViewContainer/MainView" to="." method="_on_main_view_remove_drone"]
+[connection signal="update_drone_state" from="GUI/VBoxContainer/HSplitContainer/HSplitContainer/3DView/MainViewContainer/MainView" to="." method="_on_main_view_update_drone_state"]
 [connection signal="pressed" from="GUI/VBoxContainer/HSplitContainer/HSplitContainer/3DView/PlaybackPanel/HBoxContainer/PlayButton" to="." method="_on_play_button_pressed"]
 [connection signal="pressed" from="GUI/VBoxContainer/HSplitContainer/HSplitContainer/3DView/PlaybackPanel/HBoxContainer/StepButton" to="." method="_on_step_button_pressed"]
 [connection signal="pressed" from="GUI/VBoxContainer/HSplitContainer/HSplitContainer/3DView/PlaybackPanel/HBoxContainer/ResetButton" to="." method="_on_reset_button_pressed"]
