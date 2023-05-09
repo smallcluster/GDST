@@ -11,6 +11,7 @@ var _play_simulation := true
 var _scene_tree_root : TreeItem
 var _drone_tree_index : Dictionary = {}
 var _max_height := 0
+var _top_down := false
 
 
 # -- GUI EVENTS --
@@ -59,6 +60,10 @@ func _on_perspective_cam():
 	var items = $GUI/VBoxContainer/MenuBarPanel/MenuBar/View
 	var index = items.get_item_index(0)
 	items.set_item_checked(index, false)
+	_top_down = false
+	var button := $"GUI/VBoxContainer/HSplitContainer/HSplitContainer/3DView/GizmoPanel/HBoxContainer/ViewSwitch"
+	button.icon = load("res://Sim/GUI/Icons/cube.svg")
+	button.text = "3d"
 	
 func _on_preferences_id_pressed(id):
 	var items : PopupMenu = $GUI/VBoxContainer/MenuBarPanel/MenuBar/Preferences
@@ -92,11 +97,8 @@ func _on_view_id_pressed(id):
 		checked = not items.is_item_checked(index)
 		items.set_item_checked(index, checked)
 	
-	# Top down
-	if id == 0:
-		mainView.top_down_view(checked)
 	# Reset view
-	elif id == 1:
+	if id == 1:
 		mainView.reset_view()
 	# drone vision
 	elif id == 4:
@@ -231,3 +233,15 @@ func _on_main_view_update_drone_state(state):
 			else:
 				sub_item.set_text(1, str(state[k]))
 	
+
+
+func _on_view_switch_pressed():
+	_top_down = not _top_down
+	mainView.top_down_view(_top_down)
+	var button := $"GUI/VBoxContainer/HSplitContainer/HSplitContainer/3DView/GizmoPanel/HBoxContainer/ViewSwitch"
+	if _top_down:
+		button.icon = load("res://Sim/GUI/Icons/square.svg")
+		button.text = "2d"
+	else:
+		button.icon = load("res://Sim/GUI/Icons/cube.svg")
+		button.text = "3d"

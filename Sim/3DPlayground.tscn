@@ -1,9 +1,11 @@
-[gd_scene load_steps=10 format=3 uid="uid://bu6x4bfchxkdv"]
+[gd_scene load_steps=17 format=3 uid="uid://bu6x4bfchxkdv"]
 
 [ext_resource type="Script" path="res://Sim/Scripts/3DPlayground.gd" id="1_o65i0"]
 [ext_resource type="PackedScene" uid="uid://bts548ana0mac" path="res://Sim/SimulationView.tscn" id="2_ctlmb"]
 [ext_resource type="PackedScene" uid="uid://du28do6d78ulu" path="res://Sim/GUI/GizmoWidget.tscn" id="2_hbfaq"]
 [ext_resource type="Shader" path="res://Sim/GUI/Gizmo.gdshader" id="2_hqret"]
+[ext_resource type="StyleBox" uid="uid://cc6oylkgwloqm" path="res://Sim/GUI/ViewSwitch/normal_bg.tres" id="3_ey1cn"]
+[ext_resource type="Texture2D" uid="uid://dmmawcdaunjq4" path="res://Sim/GUI/Icons/cube.svg" id="3_tee3l"]
 [ext_resource type="Texture2D" uid="uid://c4ftbgjy762m7" path="res://Sim/GUI/Icons/pause.svg" id="10_dds0u"]
 [ext_resource type="Texture2D" uid="uid://b5h7da0s2m7by" path="res://Sim/GUI/Icons/step.svg" id="11_cyna1"]
 [ext_resource type="Texture2D" uid="uid://btedf1m4d1fvh" path="res://Sim/GUI/Icons/stop.svg" id="12_qdey6"]
@@ -11,7 +13,35 @@
 [sub_resource type="Theme" id="Theme_m7sw8"]
 default_font_size = 20
 
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_hh4va"]
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_8ayuh"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_wsasj"]
+bg_color = Color(0, 0, 0, 0.13)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+expand_margin_left = 2.0
+expand_margin_top = 2.0
+expand_margin_right = 2.0
+expand_margin_bottom = 2.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_xdamk"]
+bg_color = Color(0, 0, 0, 0.5)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+expand_margin_left = 2.0
+expand_margin_top = 2.0
+expand_margin_right = 2.0
+expand_margin_bottom = 2.0
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_41wlv"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_a5j83"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_b8ydu"]
 shader = ExtResource("2_hqret")
 shader_parameter/opacity = 0.25
 
@@ -67,24 +97,21 @@ item_3/checked = true
 item_3/id = 2
 
 [node name="View" type="PopupMenu" parent="GUI/VBoxContainer/MenuBarPanel/MenuBar"]
-item_count = 6
+item_count = 5
 item_0/text = "Camera"
 item_0/id = 2
 item_0/separator = true
-item_1/text = "Top Down"
-item_1/checkable = 1
-item_1/id = 0
-item_2/text = "Reset"
-item_2/id = 1
-item_3/text = "Drones"
-item_3/id = 3
-item_3/separator = true
-item_4/text = "Vision"
+item_1/text = "Reset"
+item_1/id = 1
+item_2/text = "Drones"
+item_2/id = 3
+item_2/separator = true
+item_3/text = "Vision"
+item_3/checkable = 1
+item_3/id = 4
+item_4/text = "Hide inactive"
 item_4/checkable = 1
-item_4/id = 4
-item_5/text = "Hide inactive"
-item_5/checkable = 1
-item_5/id = 5
+item_4/id = 5
 
 [node name="HSplitContainer" type="HSplitContainer" parent="GUI/VBoxContainer"]
 layout_mode = 2
@@ -131,28 +158,50 @@ stretch = true
 size = Vector2i(1408, 1040)
 
 [node name="GizmoPanel" type="PanelContainer" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer/3DView"]
-material = SubResource("ShaderMaterial_hh4va")
 layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -144.0
+offset_left = -183.0
 offset_top = 16.0
 offset_right = -16.0
 offset_bottom = 144.0
 grow_horizontal = 0
+theme_override_styles/panel = SubResource("StyleBoxEmpty_8ayuh")
+metadata/_edit_use_anchors_ = true
 
-[node name="SubViewportContainer" type="SubViewportContainer" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer/3DView/GizmoPanel"]
+[node name="HBoxContainer" type="HBoxContainer" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer/3DView/GizmoPanel"]
 layout_mode = 2
 
-[node name="GizmoWidget" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer/3DView/GizmoPanel/SubViewportContainer" node_paths=PackedStringArray("_main_cam") instance=ExtResource("2_hbfaq")]
+[node name="ViewSwitch" type="Button" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer/3DView/GizmoPanel/HBoxContainer"]
+custom_minimum_size = Vector2(64, 0)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 0
+theme_override_styles/normal = ExtResource("3_ey1cn")
+theme_override_styles/hover = SubResource("StyleBoxFlat_wsasj")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_xdamk")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_41wlv")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_a5j83")
+text = "3d"
+icon = ExtResource("3_tee3l")
+expand_icon = true
+
+[node name="GizmoBg" type="PanelContainer" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer/3DView/GizmoPanel/HBoxContainer"]
+material = SubResource("ShaderMaterial_b8ydu")
+layout_mode = 2
+
+[node name="SubViewportContainer" type="SubViewportContainer" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer/3DView/GizmoPanel/HBoxContainer/GizmoBg"]
+layout_mode = 2
+
+[node name="GizmoWidget" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer/3DView/GizmoPanel/HBoxContainer/GizmoBg/SubViewportContainer" node_paths=PackedStringArray("_main_cam") instance=ExtResource("2_hbfaq")]
 own_world_3d = true
 transparent_bg = true
 handle_input_locally = false
 msaa_3d = 2
 screen_space_aa = 1
 render_target_update_mode = 4
-_main_cam = NodePath("../../../MainViewContainer/MainView/Camera3D")
+_main_cam = NodePath("../../../../../MainViewContainer/MainView/Camera3D")
 
 [node name="StatsPanel" type="PanelContainer" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer/3DView"]
 layout_mode = 1
@@ -282,6 +331,7 @@ text = "Kill Protocol"
 [connection signal="perspective_cam" from="GUI/VBoxContainer/HSplitContainer/HSplitContainer/3DView/MainViewContainer/MainView" to="." method="_on_perspective_cam"]
 [connection signal="remove_drone" from="GUI/VBoxContainer/HSplitContainer/HSplitContainer/3DView/MainViewContainer/MainView" to="." method="_on_main_view_remove_drone"]
 [connection signal="update_drone_state" from="GUI/VBoxContainer/HSplitContainer/HSplitContainer/3DView/MainViewContainer/MainView" to="." method="_on_main_view_update_drone_state"]
+[connection signal="pressed" from="GUI/VBoxContainer/HSplitContainer/HSplitContainer/3DView/GizmoPanel/HBoxContainer/ViewSwitch" to="." method="_on_view_switch_pressed"]
 [connection signal="pressed" from="GUI/VBoxContainer/HSplitContainer/HSplitContainer/3DView/PlaybackPanel/HBoxContainer/PlayButton" to="." method="_on_play_button_pressed"]
 [connection signal="pressed" from="GUI/VBoxContainer/HSplitContainer/HSplitContainer/3DView/PlaybackPanel/HBoxContainer/StepButton" to="." method="_on_step_button_pressed"]
 [connection signal="pressed" from="GUI/VBoxContainer/HSplitContainer/HSplitContainer/3DView/PlaybackPanel/HBoxContainer/ResetButton" to="." method="_on_reset_button_pressed"]

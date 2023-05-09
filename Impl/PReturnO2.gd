@@ -136,7 +136,6 @@ func compute(state : Dictionary, obs : Array, base_pos : Vector3) -> Dictionary:
 		new_state["position"] = pos + (target_pos - pos).normalized() * D
 		return new_state
 		
-	# MAINTAINING CONNEXION...
 	
 	#-----------------------------------------------------------------------------------------------	
 	# Try to return unecessary drone to base
@@ -170,8 +169,10 @@ func compute(state : Dictionary, obs : Array, base_pos : Vector3) -> Dictionary:
 	#-----------------------------------------------------------------------------------------------
 	
 	# Prefer neighbours who aren't dangerous
-	var no_lights := obs.filter(func(x): return not x["light"])
-	var candidates := obs if no_lights.is_empty() else no_lights
+	#var no_lights := obs.filter(func(x): return not x["light"])
+	#var candidates := obs if no_lights.is_empty() else no_lights
+	
+	var candidates = obs
 	
 	# Find Closest drone position
 	var cp = candidates.map(func(x): return x["position"])
