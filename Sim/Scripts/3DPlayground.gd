@@ -88,6 +88,8 @@ func _on_preferences_id_pressed(id):
 	# Statistics
 	elif id == 3:
 		stats_panel.visible = checked
+	elif id == 4:
+		$GUI/VBoxContainer/HSplitContainer/HSplitContainer/Panel.visible = checked
 
 func _on_view_id_pressed(id):
 	var items : PopupMenu = $GUI/VBoxContainer/MenuBarPanel/MenuBar/View
@@ -167,7 +169,8 @@ func _on_main_view_update_drone_state(state):
 	
 	if _max_height < state["position"].y:
 		_max_height = state["position"].y
-		max_height_label.text = "Largest height: "+str(_max_height)+"m"
+		max_height_label.text = "Max height: "+str(_max_height)+"m"
+		
 	
 	var item := _scene_tree_root.get_child(_drone_tree_index[state["id"]])
 
