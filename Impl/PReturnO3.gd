@@ -1,13 +1,11 @@
 ####################################################################################################
 # AUTHOR: Pierre JAFFUER                                                                           #
-# DESCRIPTION: This protocol iteratively create a bi-partition of the visibility graph for         #
-#              returning drones to chose wich direction follow (largest or lowest id underself).   #
-#              To resolve collisions while returning to the base, drones will move up, making a    #
-#              (high) pile of robots.                                                              # 
+# DESCRIPTION: This is a combinaition of PReturn and PReturnO2 which accelerates robot returning   #
+#              by avoiding parts of the graph (see PReturn bi-partition algorithm).                #
 ####################################################################################################
 
 extends Protocol
-class_name PReturn
+class_name PReturnO3
 
 var D : float = 0.3
 
@@ -24,10 +22,9 @@ func get_default_state() -> Dictionary:
 		"active": true,
 		"position": Vector3.ZERO,
 		"light": false,
-		
 		# Jaffuer's states
-		"border": false,
 		"returning" : false,
+		"border": false,
 		
 		# -- GODOT SIMULATION SPECIFIC --
 		"KILL" : false # To unload drone object
@@ -39,14 +36,10 @@ func get_defaults_from_state(state : Dictionary) -> Dictionary:
 		"id" : state["id"],
 		"active": state["active"],
 		"position": state["position"], 
-		# In reality, global position isn't memorized, the drone can use its local coordinates (0,0) 
-		# to compare distances to visible drones and move towards them.
-		
-		# Not memorized state
 		"light": false,
-		"border": false,
 		"returning" : false,
-		
+		"border": false,
+	
 		# -- GODOT SIMULATION SPECIFIC --
 		"KILL" : state["KILL"] # To unload drone object
 	}
@@ -58,11 +51,13 @@ func look(state : Dictionary, neighbours : Array[Drone]) -> Array:
 		"id" : x.state["id"],
 		"position" : x.state["position"],
 		"light" : x.state["light"],
-		"border" : x.state["border"],
-		"returning" : x.state["returning"]
+		"returning" : x.state["returning"],
+		"border": x.state["border"]
 	})
 	
 func compute(state : Dictionary, obs : Array, base_pos : Vector3) -> Dictionary:
+	
+	assert(state["position"].y >= base_pos.y-0.01, "lost connexion")
 	
 	#***********************************************************************************************
 	#*                                       CONSTANTS                                             *
@@ -72,7 +67,7 @@ func compute(state : Dictionary, obs : Array, base_pos : Vector3) -> Dictionary:
 	#-----------------------------------------------------------------------------------------------
 	var Dmax := 7 * D
 	var Dc := 2 * D
-	var Dp := 7 * D - D
+	var Dp := 7*D - D
 	var depth := 2 * D
 	
 	# CURRENT DRONE'S OBSERVABLE STATE
@@ -102,7 +97,7 @@ func compute(state : Dictionary, obs : Array, base_pos : Vector3) -> Dictionary:
 	
 	# Base retrival is a bit higher
 	var con_to_base = _flat_dist_sq(pos, base_pos) < Dmax*Dmax and  (pos.y - base_pos.y) <= depth
-
+	
 	var returning = not self_layer.all(func(x): return not x["returning"]) or not \
 								(layer1+layer2).is_empty() or (layer1+layer2+self_layer).is_empty()
 	new_state["returning"] = returning
@@ -118,7 +113,7 @@ func compute(state : Dictionary, obs : Array, base_pos : Vector3) -> Dictionary:
 		new_state["position"] = pos + Vector3.UP * D
 		return new_state
 		
-	
+
 	# RETURN TO BASE ?
 	if returning:
 		# Already near base !
@@ -127,14 +122,13 @@ func compute(state : Dictionary, obs : Array, base_pos : Vector3) -> Dictionary:
 			if(_flat_dist_sq(pos, base_pos) < 4*D*D):
 				new_state["KILL"] = true
 				return new_state
-			
 			# go towards base pos in current plane
 			var target_pos = base_pos
 			target_pos.y = pos.y
 			new_state["position"] = pos + (target_pos-pos).normalized() * D
 			return new_state
 		
-		# GO DOWN ?
+		#GO DOWN ?
 		if (layer1+layer2).is_empty():
 			new_state["position"] = pos - Vector3.UP * D
 			return new_state
@@ -157,23 +151,24 @@ func compute(state : Dictionary, obs : Array, base_pos : Vector3) -> Dictionary:
 		return new_state
 		
 	
-	# MAINTAINING CONNEXION...
-	
-	
 	#-----------------------------------------------------------------------------------------------	
 	# DISTRIBUTED ALGORITHM TO ISOLATE A UNILATERALLY CONNECTED GRAPH FROM BASE TO SEARCH TEAM'S 
 	# DRONE
-	# (Needed for the "return to base" mode)
+	# (Not needed for the "return to base" mode but improves return time by avoiding useless parts 
+	# of the graph)
 	#-----------------------------------------------------------------------------------------------
 	
 	var connected_to_me = self_layer.filter(func(x): return x["id"] > id)
 	# I am a leaf drone or all paths behind me are "border" path
 	var isolated = connected_to_me.all(func(x): return x["border"])
 	new_state["border"] = (connected_to_me.is_empty() or isolated) and not con_to_base
+		
 	
 	#-----------------------------------------------------------------------------------------------	
-	# BALABONSKI & AL.'S CONNEXION PROTOCOL
+	# Try to return unecessary drone to base
 	#-----------------------------------------------------------------------------------------------
+	
+	var leaf_drone = self_layer.filter(func(x): return x["id"] > id).is_empty()
 	
 	# Only look at neighbours with a lower id
 	obs = self_layer.filter(func(x): return x["id"] < id)
@@ -186,11 +181,25 @@ func compute(state : Dictionary, obs : Array, base_pos : Vector3) -> Dictionary:
 	var cp = candidates.map(func(x): return x["position"])
 	var target_pos = cp.reduce(func(acc, x): return acc if _flat_dist_sq(acc, pos) < \
 																_flat_dist_sq(x, pos) else x, cp[0])
-
-	# Stay if there is a danger
-	if _flat_dist_sq(pos, target_pos) <= Dc*Dc:
-		new_state["light"] = true
+	
+	# I am a leaf drone so i'm not usefull for maintaining connexion
+	if leaf_drone and not con_to_base:
+		# check if we won't lose the connexion after moving up :
+		# 2D for base retrival
+		# 2D for max lag after moving up
+		if _flat_dist_sq(target_pos, pos) < (Dmax-4*D)*(Dmax-4*D):
+			new_state["position"] = pos + Vector3.UP * D
+		else:
+			# Move to closest lower id
+			# Rem : there is no collision warning now as Dmax-4D = 3D, so it's safe to move 1D 
+			# towards it
+			new_state["position"] = pos + (target_pos-pos).normalized() * D
+			
 		return new_state
+			
+	#-----------------------------------------------------------------------------------------------	
+	# BALABONSKI & AL.'S CONNEXION PROTOCOL
+	#-----------------------------------------------------------------------------------------------
 		
 	# Move to target if necessary
 	if _flat_dist_sq(pos, target_pos) > Dp*Dp:

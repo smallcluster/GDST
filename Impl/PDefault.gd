@@ -1,3 +1,8 @@
+####################################################################################################
+# AUTHOR: Pierre JAFFUER                                                                           #
+# DESCRIPTION: This is an implementation of BALABONSKI's protocol.                                 #
+####################################################################################################
+
 extends Protocol
 class_name PDefault
 

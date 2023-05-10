@@ -1,6 +1,11 @@
 ####################################################################################################
 # AUTHOR: Pierre JAFFUER                                                                           #
-# DESCRIPTION: This protocol blablabla                                                             #
+# DESCRIPTION: This protocol iteratively transform the visibility graph to it's largest            #
+#              unilaterally connected sub graph by removing drones that are local maximums (no     #
+#              neighbour with a higer id).                                                         #
+#              Returning drones always follow largest id.                                          #
+#              To resolve collisions while returning to the base, all drones but one (lowest id    #
+#              involved) will move up, making a (high) pile of robots.                             # 
 ####################################################################################################
 
 extends Protocol
@@ -21,6 +26,7 @@ func get_default_state() -> Dictionary:
 		"active": true,
 		"position": Vector3.ZERO,
 		"light": false,
+		# Jaffuer's states
 		"returning" : false,
 		
 		# -- GODOT SIMULATION SPECIFIC --
@@ -88,12 +94,13 @@ func compute(state : Dictionary, obs : Array, base_pos : Vector3) -> Dictionary:
 	
 	# Layer filters
 	var collision_filter = func(x): return x["id"] < id and _flat_dist_sq(x["position"], pos) < D*D
-	var collision_warn_filter = func(x): return _flat_dist_sq(x["position"], pos) < 4*D*D
+	var collision_warn_filter = func(x): return x["id"] < id and _flat_dist_sq(x["position"], pos) < 4*D*D
 	
 	# Base retrival is a bit higher
-	var con_to_base = _flat_dist_sq(pos, base_pos) < Dmax*Dmax and  (pos.y - base_pos.y) < 3 * depth
+	var con_to_base = _flat_dist_sq(pos, base_pos) < Dmax*Dmax and  (pos.y - base_pos.y) <= depth
 	
-	var returning = not self_layer.all(func(x): return not x["returning"]) or not (layer1+layer2).is_empty() 
+	var returning = not self_layer.all(func(x): return not x["returning"]) or not \
+								(layer1+layer2).is_empty() or (layer1+layer2+self_layer).is_empty()
 	new_state["returning"] = returning
 
 	# CHOSE WHICH ACTION TO PERFORM 
@@ -101,17 +108,13 @@ func compute(state : Dictionary, obs : Array, base_pos : Vector3) -> Dictionary:
 	
 	# RESOLVE COLLISION ?
 	var self_layer_collision = not self_layer.filter(collision_filter).is_empty()
-	var layer1_warn_collision = not layer1.filter(collision_warn_filter).is_empty()
+	var self_layer_warn_collision = not self_layer.filter(collision_warn_filter).is_empty()
 	
-	if self_layer_collision or not layer1.is_empty():
+	if self_layer_collision or not layer1.is_empty() or (returning and self_layer_warn_collision):
 		new_state["position"] = pos + Vector3.UP * D
 		return new_state
 		
-	# GO DOWN ?
-	if (layer1+layer2).is_empty() and (returning or self_layer.is_empty()):
-		new_state["position"] = pos - Vector3.UP * D
-		return new_state
-		
+
 	# RETURN TO BASE ?
 	if returning:
 		# Already near base !
@@ -120,11 +123,15 @@ func compute(state : Dictionary, obs : Array, base_pos : Vector3) -> Dictionary:
 			if(_flat_dist_sq(pos, base_pos) < 4*D*D):
 				new_state["KILL"] = true
 				return new_state
-			
 			# go towards base pos in current plane
 			var target_pos = base_pos
 			target_pos.y = pos.y
 			new_state["position"] = pos + (target_pos-pos).normalized() * D
+			return new_state
+		
+		#GO DOWN ?
+		if (layer1+layer2).is_empty():
+			new_state["position"] = pos - Vector3.UP * D
 			return new_state
 		
 		# look drones below and follow largest id	
@@ -137,6 +144,8 @@ func compute(state : Dictionary, obs : Array, base_pos : Vector3) -> Dictionary:
 		return new_state
 		
 	
+		
+	
 	#-----------------------------------------------------------------------------------------------	
 	# Try to return unecessary drone to base
 	#-----------------------------------------------------------------------------------------------
@@ -146,11 +155,17 @@ func compute(state : Dictionary, obs : Array, base_pos : Vector3) -> Dictionary:
 	# Only look at neighbours with a lower id
 	obs = self_layer.filter(func(x): return x["id"] < id)
 	
+	# Prefer neighbours who aren't dangerous
+	var no_lights := obs.filter(func(x): return not x["light"])
+	var candidates := obs if no_lights.is_empty() else no_lights
+	
+	# Find Closest drone position
+	var cp = candidates.map(func(x): return x["position"])
+	var target_pos = cp.reduce(func(acc, x): return acc if _flat_dist_sq(acc, pos) < \
+																_flat_dist_sq(x, pos) else x, cp[0])
+	
 	# I am a leaf drone so i'm not usefull for maintaining connexion
 	if leaf_drone and not con_to_base:
-		var closest = obs.reduce(func(acc, x): return acc if _flat_dist_sq(acc["position"], pos) < \
-												_flat_dist_sq(x["position"], pos) else x, obs[0])
-		var target_pos = closest["position"]
 		# check if we won't lose the connexion after moving up :
 		# 2D for base retrival
 		# 2D for max lag after moving up
@@ -167,20 +182,6 @@ func compute(state : Dictionary, obs : Array, base_pos : Vector3) -> Dictionary:
 	#-----------------------------------------------------------------------------------------------	
 	# BALABONSKI & AL.'S CONNEXION PROTOCOL
 	#-----------------------------------------------------------------------------------------------
-	
-	# Prefer neighbours who aren't dangerous
-	var no_lights := obs.filter(func(x): return not x["light"])
-	var candidates := obs if no_lights.is_empty() else no_lights
-	
-	# Find Closest drone position
-	var cp = candidates.map(func(x): return x["position"])
-	var target_pos = cp.reduce(func(acc, x): return acc if _flat_dist_sq(acc, pos) < \
-																_flat_dist_sq(x, pos) else x, cp[0])
-
-	# Stay if there is a danger
-	if _flat_dist_sq(pos, target_pos) <= Dc*Dc:
-		new_state["light"] = true
-		return new_state
 		
 	# Move to target if necessary
 	if _flat_dist_sq(pos, target_pos) > Dp*Dp:
