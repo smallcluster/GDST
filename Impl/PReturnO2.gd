@@ -169,10 +169,8 @@ func compute(state : Dictionary, obs : Array, base_pos : Vector3) -> Dictionary:
 	#-----------------------------------------------------------------------------------------------
 	
 	# Prefer neighbours who aren't dangerous
-	#var no_lights := obs.filter(func(x): return not x["light"])
-	#var candidates := obs if no_lights.is_empty() else no_lights
-	
-	var candidates = obs
+	var no_lights := obs.filter(func(x): return not x["light"])
+	var candidates := obs if no_lights.is_empty() else no_lights
 	
 	# Find Closest drone position
 	var cp = candidates.map(func(x): return x["position"])

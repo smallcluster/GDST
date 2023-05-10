@@ -57,6 +57,7 @@ func compute(state : Dictionary, obs : Array, base_pos : Vector3) -> Dictionary:
 	
 	# Prefer a target that isn't dangerous
 	var candidates := obs.filter(func(x): return not x["light"])
+	
 	# All dangerous :(
 	if candidates.is_empty():
 		candidates = obs 
