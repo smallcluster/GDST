@@ -107,8 +107,8 @@ func compute(state : Dictionary, obs : Array, base_pos : Vector3) -> Dictionary:
 	#-----------------------------------------------------------------------------------------------
 	
 	# RESOLVE COLLISION ?
-	var self_layer_collision = not self_layer.filter(collision_filter).is_empty()
-	var self_layer_warn_collision = not self_layer.filter(collision_warn_filter).is_empty()
+	var self_layer_collision = self_layer.any(collision_filter)
+	var self_layer_warn_collision = self_layer.any(collision_warn_filter)
 	
 	if self_layer_collision or not layer1.is_empty() or (returning and self_layer_warn_collision):
 		new_state["position"] = pos + Vector3.UP * D
@@ -159,7 +159,7 @@ func compute(state : Dictionary, obs : Array, base_pos : Vector3) -> Dictionary:
 	var no_lights := obs.filter(func(x): return not x["light"])
 	var candidates := obs if no_lights.is_empty() else no_lights
 	
-	# Find Closest drone position
+	# Find Closest drone position (with light off priority)
 	var cp = candidates.map(func(x): return x["position"])
 	var target_pos = cp.reduce(func(acc, x): return acc if _flat_dist_sq(acc, pos) < \
 																_flat_dist_sq(x, pos) else x, cp[0])
@@ -169,7 +169,7 @@ func compute(state : Dictionary, obs : Array, base_pos : Vector3) -> Dictionary:
 		# check if we won't lose the connexion after moving up :
 		# 2D for base retrival
 		# 2D for max lag after moving up
-		if _flat_dist_sq(target_pos, pos) < (Dmax-4*D)*(Dmax-4*D):
+		if obs.any(func(x): return _flat_dist_sq(pos, x["position"]) < (Dmax-4*D)*(Dmax-4*D)):
 			new_state["position"] = pos + Vector3.UP * D
 		else:
 			# Move to closest lower id
@@ -182,6 +182,11 @@ func compute(state : Dictionary, obs : Array, base_pos : Vector3) -> Dictionary:
 	#-----------------------------------------------------------------------------------------------	
 	# BALABONSKI & AL.'S CONNEXION PROTOCOL
 	#-----------------------------------------------------------------------------------------------
+	
+	# Stay if there is a danger
+	if _flat_dist_sq(pos, target_pos) <= Dc*Dc:
+		new_state["light"] = true
+		return new_state
 		
 	# Move to target if necessary
 	if _flat_dist_sq(pos, target_pos) > Dp*Dp:
