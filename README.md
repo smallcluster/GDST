@@ -1,4 +1,4 @@
-# GDST
+# <img src="icon.png" height="32px"/> GDST
 
 A Tool made with Godot 4.0 to illustrate an FSYNC protocol for a swarm of oblivious robots.
 
