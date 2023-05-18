@@ -24,4 +24,3 @@ func compute_next_state(p : Protocol, base_pos : Vector3) -> void:
 
 func update_state() -> void:
 	state = _next_state
-

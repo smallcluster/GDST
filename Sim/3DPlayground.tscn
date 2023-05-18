@@ -1,9 +1,11 @@
-[gd_scene load_steps=17 format=3 uid="uid://bu6x4bfchxkdv"]
+[gd_scene load_steps=19 format=3 uid="uid://bu6x4bfchxkdv"]
 
 [ext_resource type="Script" path="res://Sim/Scripts/3DPlayground.gd" id="1_o65i0"]
+[ext_resource type="Texture2D" uid="uid://depr3l4qm3sva" path="res://Sim/GUI/Icons/play.svg" id="2_b1oaf"]
 [ext_resource type="PackedScene" uid="uid://bts548ana0mac" path="res://Sim/SimulationView.tscn" id="2_ctlmb"]
 [ext_resource type="PackedScene" uid="uid://du28do6d78ulu" path="res://Sim/GUI/GizmoWidget.tscn" id="2_hbfaq"]
 [ext_resource type="Shader" path="res://Sim/GUI/Gizmo.gdshader" id="2_hqret"]
+[ext_resource type="Texture2D" uid="uid://dcwsc01t11vti" path="res://Sim/GUI/Icons/processing.svg" id="2_kman2"]
 [ext_resource type="StyleBox" uid="uid://cc6oylkgwloqm" path="res://Sim/GUI/ViewSwitch/normal_bg.tres" id="3_ey1cn"]
 [ext_resource type="Texture2D" uid="uid://dmmawcdaunjq4" path="res://Sim/GUI/Icons/cube.svg" id="3_tee3l"]
 [ext_resource type="Texture2D" uid="uid://c4ftbgjy762m7" path="res://Sim/GUI/Icons/pause.svg" id="10_dds0u"]
@@ -144,6 +146,63 @@ grow_vertical = 2
 layout_mode = 2
 size_flags_vertical = 3
 columns = 2
+
+[node name="Tests" type="TabBar" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer/Panel"]
+visible = false
+layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer/Panel/Tests"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="RunAll" type="Button" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer/Panel/Tests/VBoxContainer"]
+layout_mode = 2
+text = "Run all"
+
+[node name="AllProgress" type="ProgressBar" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer/Panel/Tests/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="TestList" type="VBoxContainer" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer/Panel/Tests/VBoxContainer"]
+clip_contents = true
+layout_mode = 2
+
+[node name="TestItem" type="VBoxContainer" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer/Panel/Tests/VBoxContainer/TestList"]
+layout_mode = 2
+
+[node name="TestActionGroup" type="HBoxContainer" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer/Panel/Tests/VBoxContainer/TestList/TestItem"]
+clip_contents = true
+layout_mode = 2
+
+[node name="TestName" type="Label" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer/Panel/Tests/VBoxContainer/TestList/TestItem/TestActionGroup"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Name"
+
+[node name="TestRun" type="Button" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer/Panel/Tests/VBoxContainer/TestList/TestItem/TestActionGroup"]
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+icon = ExtResource("2_b1oaf")
+expand_icon = true
+
+[node name="TestProgressGroup" type="HBoxContainer" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer/Panel/Tests/VBoxContainer/TestList/TestItem"]
+layout_mode = 2
+
+[node name="TestProgress" type="ProgressBar" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer/Panel/Tests/VBoxContainer/TestList/TestItem/TestProgressGroup"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="TestStatus" type="TextureRect" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer/Panel/Tests/VBoxContainer/TestList/TestItem/TestProgressGroup"]
+custom_minimum_size = Vector2(24, 24)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+texture = ExtResource("2_kman2")
+expand_mode = 2
 
 [node name="3DView" type="Control" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer"]
 layout_mode = 2
@@ -328,6 +387,22 @@ autowrap_mode = 3
 [node name="ProtocolChoice" type="MenuButton" parent="GUI/VBoxContainer/HSplitContainer/OptionsPanel/VBoxContainer"]
 layout_mode = 2
 text = "Kill Protocol"
+
+[node name="HSeparator2" type="HSeparator" parent="GUI/VBoxContainer/HSplitContainer/OptionsPanel/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label2" type="Label" parent="GUI/VBoxContainer/HSplitContainer/OptionsPanel/VBoxContainer"]
+layout_mode = 2
+text = "Test name"
+
+[node name="TestName" type="TextEdit" parent="GUI/VBoxContainer/HSplitContainer/OptionsPanel/VBoxContainer"]
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+placeholder_text = "auto"
+
+[node name="Button" type="Button" parent="GUI/VBoxContainer/HSplitContainer/OptionsPanel/VBoxContainer"]
+layout_mode = 2
+text = "Save as test"
 
 [connection signal="id_pressed" from="GUI/VBoxContainer/MenuBarPanel/MenuBar/Preferences" to="." method="_on_preferences_id_pressed"]
 [connection signal="id_pressed" from="GUI/VBoxContainer/MenuBarPanel/MenuBar/View" to="." method="_on_view_id_pressed"]
