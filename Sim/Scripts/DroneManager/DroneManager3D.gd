@@ -8,6 +8,7 @@ signal add_drone(id)
 signal remove_drone(id)
 signal update_drone_state(state)
 signal exec_fail(exec)
+signal new_frame(states)
 
 @onready var _drones = $Drones
 @onready var _lines : Lines3D = $Lines3D as Lines3D
@@ -15,6 +16,7 @@ signal exec_fail(exec)
 @onready var _target_vis = $SearchTeam
 
 var _request_reset := false
+var _request_loading_frame : Array[Dictionary] = []
 var _hide_inactive := false
 var _simulating := false # Act as a lock
 var _drone_manager : DroneManager
@@ -29,6 +31,11 @@ var _kill_inactive := false
 var _deploy_ground_pos = null
 var _draw_directed_graph := false
 var _switch_protocol := -1
+
+
+func load_frame(states):
+	_request_reset = true
+	_request_loading_frame = states
 
 func reset()->void:
 	_request_reset = true
@@ -105,6 +112,32 @@ func _perform_actions() -> bool:
 		_search_drone = null
 		skip_frame = true
 	
+	if not _request_loading_frame.is_empty():
+		# recreate drones
+		_next_id = 0
+		for s in _request_loading_frame:
+			if _next_id < s["id"]:
+				_next_id = s["id"]
+			var state = _protocol.get_default_state()
+			state["id"] = _next_id
+			var d : Drone3D = _drone_scene.instantiate().init(s)
+			d.set_show_vision(show_vision)
+			d.set_vision_shape(_protocol.get_vision_shape())
+			d.set_vision_meshes(_protocol.get_vision_meshes())
+			d.position = s["position"]
+			_drones.add_child(d)
+			if s["id"] == 0:
+				_search_drone = d
+				_search_target_pos = Vector2(s["position"].x, s["position"].z)
+				_target_vis.position = Vector3(_search_target_pos.x, 0, _search_target_pos.y)
+			emit_signal("add_drone", s["id"])
+			emit_signal("update_drone_state", s)
+		_next_id += 1
+		_request_loading_frame = [] # DO NOT CLEAR REF FRAME !!!!
+		skip_frame = true
+			
+		
+	
 	# Request switch protocol
 	if _switch_protocol != -1:
 		_protocol = ProtocolFactory.build(_switch_protocol)
@@ -163,6 +196,13 @@ func _simulation_step() -> void:
 	#-----------------------------------------------------------------------------------------------	
 	_simulating = true # Place lock
 	
+	# Get all drones
+	var drones3D = _drones.get_children()
+	var drones : Array[Drone]
+	drones.assign(drones3D.map(func(x): return x.drone))
+	var prev_states : Array[Dictionary]
+	prev_states.assign(drones.map(func(x): return x.state.duplicate(true)))
+	
 	# move search drone
 	if _search_drone:
 		var offset : Vector2 = _search_target_pos - Vector2(_search_drone.position.x, \
@@ -170,12 +210,6 @@ func _simulation_step() -> void:
 		var dist = offset.length()
 		offset = offset.normalized() * clamp(dist, 0, _protocol.get_max_move_dist())
 		_search_drone.drone.state["position"] += Vector3(offset.x, 0, offset.y)
-	
-	# simulates all other drones
-	var drones3D = _drones.get_children()
-	var drones : Array[Drone]
-	drones.assign(drones3D.map(func(x): return x.drone))
-	
 	
 	
 	var exec := _drone_manager.simulate(drones, _protocol, _base_detection.position)
@@ -192,7 +226,39 @@ func _simulation_step() -> void:
 		var tweens = drones3D.map(func(x): return x.update(movement_time))
 		for t in tweens:
 			await t.finished
+		# Save new frame
+		var states : Array[Dictionary]
+		states.assign(drones.map(func(x): return x.state.duplicate(true)))
 		
+		var change := false
+		if prev_states.size() != states.size():
+			change = true
+		else:
+			for i in range(prev_states.size()):
+				if change:
+					break
+					
+				var ps = prev_states[i]
+				var cs = states[i]
+				# check for change
+				var pkeys = ps.keys()
+				var ckeys = cs.keys()
+
+				if pkeys.size() != ckeys.size():
+					change = true
+					break
+					
+				for k in pkeys:
+					if k not in ckeys:
+						change = true
+						break
+					elif ps[k] != cs[k]:
+						change = true
+						break
+		if change:
+			emit_signal("new_frame", states)
+					
+						
 	
 	_simulating = false # Release lock
 	
@@ -274,6 +340,9 @@ func _deploy_new_drone(pos : Vector3) -> void:
 		_search_drone = d
 		_search_target_pos = Vector2(pos.x, pos.z)
 	_drones.add_child(d)
+	if _next_id == 0:
+		var states : Array[Dictionary] = [d.drone.state.duplicate(true)]
+		emit_signal("new_frame", states)
 	emit_signal("add_drone", _next_id)
 	emit_signal("update_drone_state", state)
 	_next_id += 1

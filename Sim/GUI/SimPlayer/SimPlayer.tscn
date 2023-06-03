@@ -1,0 +1,69 @@
+[gd_scene load_steps=3 format=3 uid="uid://dkbdcxf5xri6d"]
+
+[ext_resource type="Script" path="res://Sim/Scripts/GUI/SimPlayer.gd" id="1_lfcjw"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_y3u6t"]
+
+[node name="SimPlayer" type="Control"]
+clip_contents = true
+custom_minimum_size = Vector2(0, 64)
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_bottom = -880.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+script = ExtResource("1_lfcjw")
+
+[node name="bg" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Panel" type="Panel" parent="bg"]
+custom_minimum_size = Vector2(0, 32)
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 32.0
+grow_horizontal = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_y3u6t")
+
+[node name="Control" type="Control" parent="bg"]
+anchors_preset = 0
+offset_left = 960.0
+offset_top = 32.0
+offset_right = 960.0
+offset_bottom = 32.0
+
+[node name="ColorRect2" type="ColorRect" parent="bg/Control"]
+layout_mode = 0
+offset_left = -2.0
+offset_right = 2.0
+offset_bottom = 200.0
+color = Color(0.6, 0.6, 0.6, 1)
+
+[node name="Polygon2D" type="Polygon2D" parent="bg/Control"]
+position = Vector2(-8, 0)
+color = Color(0.6, 0.6, 0.6, 1)
+polygon = PackedVector2Array(0, 0, 16, 0, 8, 8)
+
+[node name="ScrollContainer" type="ScrollContainer" parent="bg"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+vertical_scroll_mode = 3
+
+[node name="VisibleFrames" type="HBoxContainer" parent="bg/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3

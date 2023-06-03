@@ -5,6 +5,7 @@ signal add_drone(id)
 signal remove_drone(id)
 signal update_drone_state(state)
 signal exec_fail(exec)
+signal new_frame(states)
 
 @onready var _drone_manager : DroneManager3D = $"3DDroneManager"
 @onready var _cam : Camera3D = $Camera3D
@@ -73,6 +74,9 @@ func _input(event):
 	if event is InputEventMouseMotion  and _clicked:
 		_move_search_target(event.position)
 		
+func load_frame(states):
+	_drone_manager.load_frame(states)
+		
 func reset_view() -> void:
 	_cam.switch_to_perspective()
 	_cam.position = Vector3(0, 6, 3)
@@ -109,3 +113,7 @@ func _on_3d_drone_manager_update_drone_state(state):
 
 func _on_3d_drone_manager_exec_fail(exec):
 	emit_signal("exec_fail", exec)
+
+
+func _on_3d_drone_manager_new_frame(states):
+	emit_signal("new_frame", states)

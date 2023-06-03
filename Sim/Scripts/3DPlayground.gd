@@ -1,4 +1,5 @@
 extends CanvasLayer
+
 @export var mainView : SubViewport
 @export var fps_label : Label
 @export var max_height_label : Label
@@ -6,6 +7,9 @@ extends CanvasLayer
 @export var graph_choice : MenuButton
 @export var scene_tree : Tree
 @export var stats_panel : PanelContainer
+@export var play_button : Button
+@export var view_switch : Button
+@export var sim_player : SimPlayer
 
 @onready var _fail_popup = $FailWindow
 
@@ -20,7 +24,6 @@ var _top_down := false
 # -- GUI EVENTS --
 
 func _ready():
-	
 	
 	var popup = protocol_choice.get_popup()
 	var names := ProtocolFactory.get_names()
@@ -64,9 +67,8 @@ func _on_perspective_cam():
 	var index = items.get_item_index(0)
 	items.set_item_checked(index, false)
 	_top_down = false
-	var button := $"GUI/VBoxContainer/HSplitContainer/HSplitContainer/3DView/GizmoPanel/HBoxContainer/ViewSwitch"
-	button.icon = load("res://Sim/GUI/Icons/cube.svg")
-	button.text = "3d"
+	view_switch.icon = load("res://Sim/GUI/Icons/cube.svg")
+	view_switch.text = "3d"
 	
 func _on_preferences_id_pressed(id):
 	var items : PopupMenu = $GUI/VBoxContainer/MenuBarPanel/MenuBar/Preferences
@@ -93,6 +95,8 @@ func _on_preferences_id_pressed(id):
 		stats_panel.visible = checked
 	elif id == 4:
 		$GUI/VBoxContainer/HSplitContainer/HSplitContainer/Panel.visible = checked
+	elif id == 5:
+		sim_player.visible = checked
 
 func _on_view_id_pressed(id):
 	var items : PopupMenu = $GUI/VBoxContainer/MenuBarPanel/MenuBar/View
@@ -124,11 +128,10 @@ func _on_play_button_pressed():
 		_update_play_button()
 	
 func _update_play_button():
-	var button := $"GUI/VBoxContainer/HSplitContainer/HSplitContainer/3DView/PlaybackPanel/HBoxContainer/PlayButton"
 	if _play_simulation:
-		button.icon = load("res://Sim/GUI/Icons/pause.svg")
+		play_button.icon = load("res://Sim/GUI/Icons/pause.svg")
 	else:
-		button.icon = load("res://Sim/GUI/Icons/play.svg")
+		play_button.icon = load("res://Sim/GUI/Icons/play.svg")
 	
 
 
@@ -141,6 +144,10 @@ func _on_step_button_pressed():
 
 
 func _on_reset_button_pressed():
+	reset()
+	sim_player.clear()
+	
+func reset():
 	mainView.reset_simulation()
 	mainView.run_simulation(false)
 	_play_simulation = false
@@ -151,7 +158,6 @@ func _on_reset_button_pressed():
 	_scene_tree_root = scene_tree.create_item()
 	_scene_tree_root.set_text(0, "Drones")
 	_max_height = 0
-	
 	_fail_popup.visible = false
 	
 	
@@ -250,13 +256,12 @@ func _on_main_view_update_drone_state(state):
 func _on_view_switch_pressed():
 	_top_down = not _top_down
 	mainView.top_down_view(_top_down)
-	var button := $"GUI/VBoxContainer/HSplitContainer/HSplitContainer/3DView/GizmoPanel/HBoxContainer/ViewSwitch"
 	if _top_down:
-		button.icon = load("res://Sim/GUI/Icons/square.svg")
-		button.text = "2d"
+		view_switch.icon = load("res://Sim/GUI/Icons/square.svg")
+		view_switch.text = "2d"
 	else:
-		button.icon = load("res://Sim/GUI/Icons/cube.svg")
-		button.text = "3d"
+		view_switch.icon = load("res://Sim/GUI/Icons/cube.svg")
+		view_switch.text = "3d"
 
 
 func _on_main_view_exec_fail(exec):
@@ -268,5 +273,11 @@ func _on_main_view_exec_fail(exec):
 	_fail_popup.set_data(exec.msg, exec.state)
 	
 	
-	
+func _on_main_view_new_frame(states):
+	sim_player.add_frame(states)
+
+
+func _on_sim_player_load_frame(states):
+	reset()
+	mainView.load_frame(states)
 	

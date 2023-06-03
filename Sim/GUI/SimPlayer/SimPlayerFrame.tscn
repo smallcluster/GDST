@@ -1,0 +1,50 @@
+[gd_scene load_steps=4 format=3 uid="uid://cdmuc4yoixesd"]
+
+[ext_resource type="Script" path="res://Sim/Scripts/GUI/SimPlayerFrame.gd" id="1_25m66"]
+
+[sub_resource type="StyleBoxLine" id="StyleBoxLine_ue5k0"]
+grow_end = 0.0
+thickness = 2
+vertical = true
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_553o5"]
+
+[node name="Frame" type="VBoxContainer"]
+size_flags_horizontal = 3
+script = ExtResource("1_25m66")
+
+[node name="FrameHeader" type="HBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="FrameSep" type="VSeparator" parent="FrameHeader"]
+layout_mode = 2
+theme_override_styles/separator = SubResource("StyleBoxLine_ue5k0")
+
+[node name="FrameLabel" type="Label" parent="FrameHeader"]
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_font_sizes/font_size = 16
+text = "0
+"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="FrameSep2" type="VSeparator" parent="FrameHeader"]
+layout_mode = 2
+theme_override_styles/separator = SubResource("StyleBoxEmpty_553o5")
+
+[node name="Space1" type="Control" parent="."]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="FrameRect" type="ColorRect" parent="."]
+custom_minimum_size = Vector2(16, 16)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+
+[node name="Space2" type="Control" parent="."]
+layout_mode = 2
+size_flags_vertical = 3
