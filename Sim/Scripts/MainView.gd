@@ -5,7 +5,7 @@ signal add_drone(id)
 signal remove_drone(id)
 signal update_drone_state(state)
 signal exec_fail(exec)
-signal new_frame(states)
+signal new_frame(states, target)
 
 @onready var _drone_manager : DroneManager3D = $"3DDroneManager"
 @onready var _cam : Camera3D = $Camera3D
@@ -13,6 +13,8 @@ signal new_frame(states)
 @onready var _floor = $Floor
 var _clicked := false
 
+func get_base_pos() -> Vector3:
+	return _drone_manager.get_base_pos()
 
 func _process(delta):
 	_floor.position.x = _cam.global_position.x
@@ -28,8 +30,8 @@ func run_one_simulation_step() -> void:
 func show_vision(button_pressed : bool) -> void:
 	_drone_manager.show_vision = button_pressed
 	
-func set_protocol(id : int) -> void:
-	_drone_manager.set_protocol(id)
+func set_protocol(p : Protocol) -> void:
+	_drone_manager.set_protocol(p)
 		
 func top_down_view(button_pressed) -> void:
 	if button_pressed:
@@ -53,6 +55,9 @@ func _move_search_target(position2D) -> void:
 		var target = Vector2(position3D.x, position3D.z)
 		_drone_manager.set_search_target(target)
 		
+func set_search_target(target : Vector2) -> void:
+	_drone_manager.set_search_target(target)
+		
 func _mouse_to_world(position2D : Vector2) -> Vector3:
 	var dropPlane  = Plane(Vector3(0, 1, 0), 0)
 	var position3D = dropPlane.intersects_ray(
@@ -74,8 +79,8 @@ func _input(event):
 	if event is InputEventMouseMotion  and _clicked:
 		_move_search_target(event.position)
 		
-func load_frame(states):
-	_drone_manager.load_frame(states)
+func load_frame(states, target):
+	_drone_manager.load_frame(states, target)
 		
 func reset_view() -> void:
 	_cam.switch_to_perspective()
@@ -115,5 +120,5 @@ func _on_3d_drone_manager_exec_fail(exec):
 	emit_signal("exec_fail", exec)
 
 
-func _on_3d_drone_manager_new_frame(states):
-	emit_signal("new_frame", states)
+func _on_3d_drone_manager_new_frame(states, target):
+	emit_signal("new_frame", states, target)

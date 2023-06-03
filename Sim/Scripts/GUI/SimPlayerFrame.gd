@@ -6,6 +6,7 @@ extends VBoxContainer
 var n := 0 : get = get_number, set = set_number
 
 var states : Array[Dictionary]
+var target : Vector2
 
 signal selected(n)
 

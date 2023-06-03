@@ -52,7 +52,8 @@ func get_defaults_from_state(state : Dictionary) -> Dictionary:
 	}
 	
 func look(state : Dictionary, neighbours : Array[Drone]) -> Array:
-	var visible := neighbours.filter(func(x): return x.state["active"])
+	var Dmax := 7*D
+	var visible := neighbours.filter(func(x): return x.state["active"] and _flat_dist_sq(state["position"], x.state["position"]) <= Dmax*Dmax + 0.1)
 	
 	return visible.map(func(x): return {
 		"id" : x.state["id"],
@@ -196,7 +197,7 @@ func compute(state : Dictionary, obs : Array, base_pos : Vector3) -> ExecReturn:
 		return ExecReturn.new(false, "", new_state)
 		
 	# Move to target if necessary
-	if _flat_dist_sq(pos, target_pos) > Dp*Dp:
+	if _flat_dist_sq(pos, target_pos) >= Dp*Dp:
 		var vd = (target_pos - pos)
 		new_state["position"] = pos + vd.normalized() * D
 		

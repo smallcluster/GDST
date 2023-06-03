@@ -1,11 +1,9 @@
-[gd_scene load_steps=21 format=3 uid="uid://cqfg0vjofnfq6"]
+[gd_scene load_steps=19 format=3 uid="uid://cqfg0vjofnfq6"]
 
 [ext_resource type="Script" path="res://Sim/Scripts/3DPlayground.gd" id="1_o65i0"]
-[ext_resource type="Texture2D" uid="uid://depr3l4qm3sva" path="res://Sim/GUI/Icons/play.svg" id="2_b1oaf"]
 [ext_resource type="PackedScene" uid="uid://bts548ana0mac" path="res://Sim/SimulationView.tscn" id="2_ctlmb"]
 [ext_resource type="PackedScene" uid="uid://du28do6d78ulu" path="res://Sim/GUI/GizmoWidget.tscn" id="2_hbfaq"]
 [ext_resource type="Shader" path="res://Sim/GUI/Gizmo.gdshader" id="2_hqret"]
-[ext_resource type="Texture2D" uid="uid://dcwsc01t11vti" path="res://Sim/GUI/Icons/processing.svg" id="2_kman2"]
 [ext_resource type="StyleBox" uid="uid://cc6oylkgwloqm" path="res://Sim/GUI/ViewSwitch/normal_bg.tres" id="3_ey1cn"]
 [ext_resource type="Texture2D" uid="uid://dmmawcdaunjq4" path="res://Sim/GUI/Icons/cube.svg" id="3_tee3l"]
 [ext_resource type="Texture2D" uid="uid://c4ftbgjy762m7" path="res://Sim/GUI/Icons/pause.svg" id="10_dds0u"]
@@ -49,7 +47,7 @@ expand_margin_bottom = 2.0
 shader = ExtResource("2_hqret")
 shader_parameter/opacity = 0.25
 
-[node name="3DPlayground" type="CanvasLayer" node_paths=PackedStringArray("mainView", "fps_label", "max_height_label", "protocol_choice", "graph_choice", "scene_tree", "stats_panel", "play_button", "view_switch", "sim_player")]
+[node name="3DPlayground" type="CanvasLayer" node_paths=PackedStringArray("mainView", "fps_label", "max_height_label", "protocol_choice", "graph_choice", "scene_tree", "stats_panel", "play_button", "view_switch", "sim_player", "test_tree")]
 script = ExtResource("1_o65i0")
 mainView = NodePath("GUI/VBoxContainer/HSplitContainer/HSplitContainer/VSplitContainer/3DView/MainViewContainer/MainView")
 fps_label = NodePath("GUI/VBoxContainer/HSplitContainer/HSplitContainer/VSplitContainer/3DView/StatsPanel/VBoxContainer/FpsLabel")
@@ -61,6 +59,7 @@ stats_panel = NodePath("GUI/VBoxContainer/HSplitContainer/HSplitContainer/VSplit
 play_button = NodePath("GUI/VBoxContainer/HSplitContainer/HSplitContainer/VSplitContainer/3DView/PlaybackPanel/HBoxContainer/PlayButton")
 view_switch = NodePath("GUI/VBoxContainer/HSplitContainer/HSplitContainer/VSplitContainer/3DView/GizmoPanel/HBoxContainer/ViewSwitch")
 sim_player = NodePath("GUI/VBoxContainer/HSplitContainer/HSplitContainer/VSplitContainer/SimPlayer")
+test_tree = NodePath("GUI/VBoxContainer/HSplitContainer/HSplitContainer/Panel/Tests/VBoxContainer/Tree")
 
 [node name="GUI" type="Panel" parent="."]
 anchors_preset = 15
@@ -136,13 +135,14 @@ split_offset = 1670
 
 [node name="HSplitContainer" type="HSplitContainer" parent="GUI/VBoxContainer/HSplitContainer"]
 layout_mode = 2
-split_offset = 250
+split_offset = 280
 
 [node name="Panel" type="TabContainer" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer"]
 z_index = 1
 layout_mode = 2
 
 [node name="Inspector" type="TabBar" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer/Panel"]
+clip_contents = true
 layout_mode = 2
 
 [node name="VBoxContainer" type="VBoxContainer" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer/Panel/Inspector"]
@@ -158,8 +158,41 @@ layout_mode = 2
 size_flags_vertical = 3
 columns = 2
 
+[node name="HBoxContainer" type="HBoxContainer" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer/Panel/Inspector/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer/Panel/Inspector/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+text = "d("
+
+[node name="LineEdit" type="LineEdit" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer/Panel/Inspector/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+
+[node name="Label3" type="Label" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer/Panel/Inspector/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+text = ","
+
+[node name="LineEdit2" type="LineEdit" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer/Panel/Inspector/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+
+[node name="Label4" type="Label" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer/Panel/Inspector/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+text = ")"
+
+[node name="HBoxContainer2" type="HBoxContainer" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer/Panel/Inspector/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label2" type="Label" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer/Panel/Inspector/VBoxContainer/HBoxContainer2"]
+layout_mode = 2
+text = "="
+
+[node name="Label4" type="Label" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer/Panel/Inspector/VBoxContainer/HBoxContainer2"]
+layout_mode = 2
+text = "null"
+
 [node name="Tests" type="TabBar" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer/Panel"]
 visible = false
+clip_contents = true
 layout_mode = 2
 
 [node name="VBoxContainer" type="VBoxContainer" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer/Panel/Tests"]
@@ -170,54 +203,26 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="RunAll" type="Button" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer/Panel/Tests/VBoxContainer"]
+[node name="HBoxContainer" type="HBoxContainer" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer/Panel/Tests/VBoxContainer"]
 layout_mode = 2
-text = "Run all"
 
-[node name="AllProgress" type="ProgressBar" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer/Panel/Tests/VBoxContainer"]
+[node name="RefreshTests" type="Button" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer/Panel/Tests/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+text = "Refresh"
+
+[node name="TestFolderPath" type="LineEdit" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer/Panel/Tests/VBoxContainer/HBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
+placeholder_text = "./tests"
 
-[node name="TestList" type="VBoxContainer" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer/Panel/Tests/VBoxContainer"]
-clip_contents = true
+[node name="Tree" type="Tree" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer/Panel/Tests/VBoxContainer"]
 layout_mode = 2
-
-[node name="TestItem" type="VBoxContainer" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer/Panel/Tests/VBoxContainer/TestList"]
-layout_mode = 2
-
-[node name="TestActionGroup" type="HBoxContainer" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer/Panel/Tests/VBoxContainer/TestList/TestItem"]
-clip_contents = true
-layout_mode = 2
-
-[node name="TestName" type="Label" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer/Panel/Tests/VBoxContainer/TestList/TestItem/TestActionGroup"]
-layout_mode = 2
-size_flags_horizontal = 3
-text = "Name"
-
-[node name="TestRun" type="Button" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer/Panel/Tests/VBoxContainer/TestList/TestItem/TestActionGroup"]
-custom_minimum_size = Vector2(32, 32)
-layout_mode = 2
-icon = ExtResource("2_b1oaf")
-expand_icon = true
-
-[node name="TestProgressGroup" type="HBoxContainer" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer/Panel/Tests/VBoxContainer/TestList/TestItem"]
-layout_mode = 2
-
-[node name="TestProgress" type="ProgressBar" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer/Panel/Tests/VBoxContainer/TestList/TestItem/TestProgressGroup"]
-layout_mode = 2
-size_flags_horizontal = 3
-
-[node name="TestStatus" type="TextureRect" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer/Panel/Tests/VBoxContainer/TestList/TestItem/TestProgressGroup"]
-custom_minimum_size = Vector2(24, 24)
-layout_mode = 2
-size_flags_horizontal = 4
-size_flags_vertical = 4
-texture = ExtResource("2_kman2")
-expand_mode = 2
+size_flags_vertical = 3
+columns = 2
 
 [node name="VSplitContainer" type="VSplitContainer" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer"]
 layout_mode = 2
-split_offset = 881
+split_offset = 900
 
 [node name="3DView" type="Control" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer/VSplitContainer"]
 clip_contents = true
@@ -234,7 +239,7 @@ grow_vertical = 2
 stretch = true
 
 [node name="MainView" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer/VSplitContainer/3DView/MainViewContainer" instance=ExtResource("2_ctlmb")]
-size = Vector2i(1408, 881)
+size = Vector2i(1378, 900)
 
 [node name="GizmoPanel" type="PanelContainer" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer/VSplitContainer/3DView"]
 layout_mode = 1
@@ -417,17 +422,24 @@ text = "Test name"
 [node name="TestName" type="TextEdit" parent="GUI/VBoxContainer/HSplitContainer/OptionsPanel/VBoxContainer"]
 custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
-placeholder_text = "auto"
+placeholder_text = "test"
 
-[node name="Button" type="Button" parent="GUI/VBoxContainer/HSplitContainer/OptionsPanel/VBoxContainer"]
+[node name="SaveTest" type="Button" parent="GUI/VBoxContainer/HSplitContainer/OptionsPanel/VBoxContainer"]
 layout_mode = 2
-text = "Save as test"
+text = "Save frame as test"
 
 [node name="FailWindow" parent="." instance=ExtResource("12_nvwb1")]
 visible = false
 
 [connection signal="id_pressed" from="GUI/VBoxContainer/MenuBarPanel/MenuBar/Preferences" to="." method="_on_preferences_id_pressed"]
 [connection signal="id_pressed" from="GUI/VBoxContainer/MenuBarPanel/MenuBar/View" to="." method="_on_view_id_pressed"]
+[connection signal="text_changed" from="GUI/VBoxContainer/HSplitContainer/HSplitContainer/Panel/Inspector/VBoxContainer/HBoxContainer/LineEdit" to="." method="_on_dist_arg_changed"]
+[connection signal="text_submitted" from="GUI/VBoxContainer/HSplitContainer/HSplitContainer/Panel/Inspector/VBoxContainer/HBoxContainer/LineEdit" to="." method="_on_dist_arg_changed"]
+[connection signal="text_changed" from="GUI/VBoxContainer/HSplitContainer/HSplitContainer/Panel/Inspector/VBoxContainer/HBoxContainer/LineEdit2" to="." method="_on_dist_arg_changed"]
+[connection signal="text_submitted" from="GUI/VBoxContainer/HSplitContainer/HSplitContainer/Panel/Inspector/VBoxContainer/HBoxContainer/LineEdit2" to="." method="_on_dist_arg_changed"]
+[connection signal="pressed" from="GUI/VBoxContainer/HSplitContainer/HSplitContainer/Panel/Tests/VBoxContainer/HBoxContainer/RefreshTests" to="." method="_on_refresh_tests_pressed"]
+[connection signal="text_changed" from="GUI/VBoxContainer/HSplitContainer/HSplitContainer/Panel/Tests/VBoxContainer/HBoxContainer/TestFolderPath" to="." method="_on_test_folder_path_text_changed"]
+[connection signal="text_submitted" from="GUI/VBoxContainer/HSplitContainer/HSplitContainer/Panel/Tests/VBoxContainer/HBoxContainer/TestFolderPath" to="." method="_on_test_folder_path_text_submitted"]
 [connection signal="add_drone" from="GUI/VBoxContainer/HSplitContainer/HSplitContainer/VSplitContainer/3DView/MainViewContainer/MainView" to="." method="_on_main_view_add_drone"]
 [connection signal="exec_fail" from="GUI/VBoxContainer/HSplitContainer/HSplitContainer/VSplitContainer/3DView/MainViewContainer/MainView" to="." method="_on_main_view_exec_fail"]
 [connection signal="new_frame" from="GUI/VBoxContainer/HSplitContainer/HSplitContainer/VSplitContainer/3DView/MainViewContainer/MainView" to="." method="_on_main_view_new_frame"]
@@ -441,3 +453,4 @@ visible = false
 [connection signal="load_frame" from="GUI/VBoxContainer/HSplitContainer/HSplitContainer/VSplitContainer/SimPlayer" to="." method="_on_sim_player_load_frame"]
 [connection signal="pressed" from="GUI/VBoxContainer/HSplitContainer/OptionsPanel/VBoxContainer/KillInactive" to="." method="_on_kill_inactive_pressed"]
 [connection signal="value_changed" from="GUI/VBoxContainer/HSplitContainer/OptionsPanel/VBoxContainer/MoveTimeSlider" to="." method="_on_move_time_value_changed"]
+[connection signal="pressed" from="GUI/VBoxContainer/HSplitContainer/OptionsPanel/VBoxContainer/SaveTest" to="." method="_on_save_test_pressed"]

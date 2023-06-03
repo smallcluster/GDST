@@ -28,7 +28,8 @@ func get_default_state() -> Dictionary:
 	}
 	
 func look(state : Dictionary, neighbours : Array[Drone]) -> Array:
-	var visible := neighbours.filter(func(x): return x.state["active"] and x.state["id"] < state["id"])
+	var Dmax := 7*D
+	var visible := neighbours.filter(func(x): return x.state["active"] and x.state["id"] < state["id"] and state["position"].distance_squared_to(x.state["position"]) <= Dmax*Dmax + 0.1)
 	return visible.map(func(x): return {
 		"id" : x.state["id"],
 		"position" : x.state["position"],
@@ -79,7 +80,7 @@ func compute(state : Dictionary, obs : Array, base_pos : Vector3) -> ExecReturn:
 		return ExecReturn.new(false, "", new_state)
 		
 	# All good ? => move to target only if it is in Dp zone
-	if new_pos.distance_squared_to(pos) > Dp*Dp:
+	if new_pos.distance_squared_to(pos) >= Dp*Dp:
 		var vd = (new_pos - pos)
 		new_state["position"] = pos + vd.normalized() * D
 		

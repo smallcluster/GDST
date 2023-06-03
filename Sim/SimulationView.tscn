@@ -95,7 +95,7 @@ script = ExtResource("4_ehkx3")
 [node name="Base" type="Node3D" parent="3DDroneManager"]
 
 [node name="Detection" type="Area3D" parent="3DDroneManager/Base"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.00312996, 2.37709, -0.00656414)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.377, 0)
 collision_layer = 2
 collision_mask = 2
 

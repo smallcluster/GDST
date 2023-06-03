@@ -10,14 +10,17 @@ extends CanvasLayer
 @export var play_button : Button
 @export var view_switch : Button
 @export var sim_player : SimPlayer
+@export var test_tree : Tree
 
 @onready var _fail_popup = $FailWindow
 
 var _play_simulation := true
 var _scene_tree_root : TreeItem
+var _test_tree_root : TreeItem
 var _drone_tree_index : Dictionary = {}
 var _max_height := 0
 var _top_down := false
+
 
 
 
@@ -36,7 +39,21 @@ func _ready():
 		var index = popup.get_item_index(id)
 		var text = popup.get_item_text(index)
 		protocol_choice.text = text
-		mainView.set_protocol(index)
+		var p : Protocol = ProtocolFactory.build(index)
+		mainView.set_protocol(p)
+		
+		# Keep current frame
+		var frame = sim_player.get_current_frame()
+		var states : Array[Dictionary]
+		states.assign(frame.states.map(func(x): return p.migrate_state(x)))
+		var target = frame.target
+		
+		reset()
+		sim_player.clear()
+		
+		# Create new frame
+		sim_player.add_frame(states, target)
+		mainView.load_frame(states, target)
 	)
 	
 	popup = graph_choice.get_popup()
@@ -52,8 +69,110 @@ func _ready():
 	
 	_scene_tree_root = scene_tree.create_item()
 	_scene_tree_root.set_text(0, "Drones")
+	
+	list_tests()
+	
+	# To load tests
+	test_tree.connect("button_clicked", func(item, column, id, mouse_button_index):
+		load_test(_get_tests_dir_path()+"/"+item.get_text(0)+".json")
+	)
+	
+	
+	
+func list_tests():
+	# List test files
+	test_tree.disconnect("button_clicked", func(item, column, id, mouse_button_index):pass)
+	test_tree.clear()
+	
+	_test_tree_root = test_tree.create_item()
+	_test_tree_root.set_text(0, "Tests")
+	
+	var img = Image.load_from_file("res://Sim/GUI/Icons/load_test.svg")
+	img.resize(24, 24)
+	var tex = ImageTexture.create_from_image(img)
+	
+	var dir := DirAccess.open(_get_tests_dir_path())
+	
+	if dir:
+		dir.list_dir_begin()
+		var file_name = dir.get_next()
+		while file_name != "":
+			if not dir.current_is_dir() and file_name.ends_with("json"):
+				var t := test_tree.create_item(_test_tree_root)
+				t.set_text(0, file_name.substr(0, len(file_name)-5))
+				t.add_button(1, tex)
+			file_name = dir.get_next()
+		dir.list_dir_end()
+	else:
+		var t := test_tree.create_item(_test_tree_root)
+		t.set_text(0, "No tests found")
+	
+	
+func _get_tests_dir_path():
+	var line_edit : LineEdit = $GUI/VBoxContainer/HSplitContainer/HSplitContainer/Panel/Tests/VBoxContainer/HBoxContainer/TestFolderPath
+	var dir_path = line_edit.placeholder_text if  line_edit.text == "" else line_edit.text
+	return dir_path
 
-
+func load_test(path : String):
+	var j = JSON.parse_string(FileAccess.get_file_as_string(path))
+	# TODO: check if file is well formed
+	if j == null:
+		list_tests()
+		return
+	
+	# Protocol infos
+	var protocol_name = j["protocol"]
+	
+	var protocol = ProtocolFactory.build(ProtocolFactory.get_names().find(protocol_name))
+	
+	var states : Array[Dictionary] = []
+	var expression = Expression.new()
+	
+	var target = Vector2.ZERO
+	
+	for js in j["states"]:
+		var s = js.duplicate(true)
+		
+		# parse position
+		var pos = []
+		for x in js["position"]:
+			if x is String:
+				expression.parse(x, ["D"])
+				pos.append(expression.execute([protocol.D]))
+			else:
+				pos.append(x)
+		
+		s["position"] = mainView.get_base_pos() + Vector3(pos[0],pos[1],pos[2])
+		
+		if s["id"] == 0:
+			var tmp = s["position"]
+			target = Vector2(tmp.x, tmp.z)
+			
+		
+		states.append(protocol.migrate_state(s))
+	
+	if j.has("target"):
+		var pos = []
+		for x in j["target"]:
+			if x is String:
+				expression.parse(x, ["D"])
+				pos.append(expression.execute([protocol.D]))
+			else:
+				pos.append(x)
+		target = Vector2(pos[0], pos[1])
+	
+	# Switch to new protocol
+	protocol_choice.text = protocol_name
+	mainView.set_protocol(protocol)
+	
+	reset()
+	sim_player.clear()
+	# Create new frame
+	sim_player.add_frame(states, target)
+	mainView.load_frame(states, target)
+	
+	
+	
 	
 func _process(delta):
 	fps_label.text = str(Engine.get_frames_per_second()) + " FPS"
@@ -162,26 +281,20 @@ func reset():
 	
 	
 func _on_main_view_add_drone(id):
+	_register_drone(id)
+	
+func _register_drone(id):
 	var d := scene_tree.create_item(_scene_tree_root)
 	d.set_text(0, "drone "+str(id))
 	d.collapsed = true
 	_drone_tree_index[id] = d.get_index()
 	_scene_tree_root.set_text(0, "Drones ("+str(_scene_tree_root.get_child_count())+")")
 	
-
-func _on_main_view_remove_drone(id):
-	_scene_tree_root.remove_child(_scene_tree_root.get_child(_drone_tree_index[id]))
-	_drone_tree_index.erase(id)
-	var i = 0
-	for k in _drone_tree_index:
-		_drone_tree_index[k] = i
-		i += 1
-	_scene_tree_root.set_text(0, "Drones ("+str(_scene_tree_root.get_child_count())+")")
+func _update_registered_drone(state):
 	
-
-
-func _on_main_view_update_drone_state(state):
-	
+	if _max_height < state["position"].y:
+		_max_height = state["position"].y
+		max_height_label.text = "Max height: "+str(_max_height)+"m"
 	if _max_height < state["position"].y:
 		_max_height = state["position"].y
 		max_height_label.text = "Max height: "+str(_max_height)+"m"
@@ -251,7 +364,21 @@ func _on_main_view_update_drone_state(state):
 			else:
 				sub_item.set_text(1, str(state[k]))
 	
+	
 
+func _on_main_view_remove_drone(id):
+	_scene_tree_root.remove_child(_scene_tree_root.get_child(_drone_tree_index[id]))
+	_drone_tree_index.erase(id)
+	var i = 0
+	for k in _drone_tree_index:
+		_drone_tree_index[k] = i
+		i += 1
+	_scene_tree_root.set_text(0, "Drones ("+str(_scene_tree_root.get_child_count())+")")
+	
+
+
+func _on_main_view_update_drone_state(state):
+	_update_registered_drone(state)
 
 func _on_view_switch_pressed():
 	_top_down = not _top_down
@@ -273,11 +400,87 @@ func _on_main_view_exec_fail(exec):
 	_fail_popup.set_data(exec.msg, exec.state)
 	
 	
-func _on_main_view_new_frame(states):
-	sim_player.add_frame(states)
+func _on_main_view_new_frame(states, target):
+	sim_player.add_frame(states, target)
 
 
-func _on_sim_player_load_frame(states):
+func _on_sim_player_load_frame(states, target):
 	reset()
-	mainView.load_frame(states)
+	mainView.load_frame(states, target)
+	
+	
+func _on_refresh_tests_pressed():
+	list_tests()
+
+func _on_test_folder_path_text_changed(new_text):
+	list_tests()
+
+func _on_test_folder_path_text_submitted(new_text):
+	list_tests()
+
+
+func _on_dist_arg_changed(new_text):
+	var in1 = $GUI/VBoxContainer/HSplitContainer/HSplitContainer/Panel/Inspector/VBoxContainer/HBoxContainer/LineEdit 
+	var in2 = $GUI/VBoxContainer/HSplitContainer/HSplitContainer/Panel/Inspector/VBoxContainer/HBoxContainer/LineEdit2
+	var out = $GUI/VBoxContainer/HSplitContainer/HSplitContainer/Panel/Inspector/VBoxContainer/HBoxContainer2/Label4
+	
+	if in1.text.is_valid_int() and in2.text.is_valid_int():
+		var id1 = in1.text.to_int()
+		var id2 = in2.text.to_int()
+		if id1 in _drone_tree_index and id2 in _drone_tree_index:
+			var item1 := _scene_tree_root.get_child(_drone_tree_index[id1])
+			var item2 := _scene_tree_root.get_child(_drone_tree_index[id2])
+			
+			var p1 = []
+			for c in item1.get_children():
+				if c.get_text(0) == "position":
+					for x in c.get_children():
+						p1.append(x.get_text(1).to_float())
+					break
+			var p2 = []
+			for c in item2.get_children():
+				if c.get_text(0) == "position":
+					for x in c.get_children():
+						p2.append(x.get_text(1).to_float())
+					break
+			var d = (p1[0]-p2[0])*(p1[0]-p2[0]) + (p1[2]-p2[2])*(p1[2]-p2[2])
+			out.text = str(d)					
+					
+		else:
+			out.text = "null"
+	else:
+		out.text = "null"
+		
+
+func _on_save_test_pressed():
+	var frame = sim_player.get_current_frame()
+	var t = frame.target
+	var dict = {
+		"protocol" : protocol_choice.text,
+		"states" : [],
+		"target" : [t.x, t.y]
+	}
+	for s in frame.states:
+		var fs = {}
+		for k in s:
+			# skip this 'KILL' internal state
+			if k == "KILL": 
+				continue
+			if k == "position": # format position
+				var p = s[k] - mainView.get_base_pos()
+				
+				fs[k] = [p.x, p.y, p.z]
+			else:
+				fs[k] = s[k]
+				
+		dict["states"].append(fs)
+	var name_edit = $GUI/VBoxContainer/HSplitContainer/OptionsPanel/VBoxContainer/TestName
+	var txt = name_edit.text if name_edit.text != "" else name_edit.placeholder_text
+	
+	var file = FileAccess.open(_get_tests_dir_path()+"/"+txt+".json", FileAccess.WRITE)
+	if file:
+		file.store_string(JSON.stringify(dict))
+		file.close()
+		list_tests()
+	
 	

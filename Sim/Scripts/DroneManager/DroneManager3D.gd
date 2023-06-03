@@ -8,7 +8,7 @@ signal add_drone(id)
 signal remove_drone(id)
 signal update_drone_state(state)
 signal exec_fail(exec)
-signal new_frame(states)
+signal new_frame(states, target)
 
 @onready var _drones = $Drones
 @onready var _lines : Lines3D = $Lines3D as Lines3D
@@ -30,12 +30,15 @@ var _run_one_step := false
 var _kill_inactive := false
 var _deploy_ground_pos = null
 var _draw_directed_graph := false
-var _switch_protocol := -1
+var _switch_protocol = null
 
+func get_base_pos() -> Vector3:
+	return _base_detection.position
 
-func load_frame(states):
+func load_frame(states, target):
 	_request_reset = true
 	_request_loading_frame = states
+	_search_target_pos = target
 
 func reset()->void:
 	_request_reset = true
@@ -50,8 +53,8 @@ func run_one_simulation_step() -> void:
 	_run_one_step = true
 	_run_simulation = false
 
-func set_protocol(id : int) -> void:
-	_switch_protocol = id
+func set_protocol(p : Protocol) -> void:
+	_switch_protocol = p
 
 	
 func deploy_ground_drone_at(pos : Vector3) -> void:
@@ -128,7 +131,6 @@ func _perform_actions() -> bool:
 			_drones.add_child(d)
 			if s["id"] == 0:
 				_search_drone = d
-				_search_target_pos = Vector2(s["position"].x, s["position"].z)
 				_target_vis.position = Vector3(_search_target_pos.x, 0, _search_target_pos.y)
 			emit_signal("add_drone", s["id"])
 			emit_signal("update_drone_state", s)
@@ -139,13 +141,13 @@ func _perform_actions() -> bool:
 		
 	
 	# Request switch protocol
-	if _switch_protocol != -1:
-		_protocol = ProtocolFactory.build(_switch_protocol)
+	if _switch_protocol != null:
+		_protocol = _switch_protocol
 		for d in _drones.get_children():
 			d.set_vision_shape(_protocol.get_vision_shape())
 			d.set_vision_meshes(_protocol.get_vision_meshes())
 			d.drone.state = _protocol.migrate_state(d.drone.state)
-		_switch_protocol = -1
+		_switch_protocol = null
 		skip_frame = true
 		
 	# kill inactive
@@ -203,14 +205,6 @@ func _simulation_step() -> void:
 	var prev_states : Array[Dictionary]
 	prev_states.assign(drones.map(func(x): return x.state.duplicate(true)))
 	
-	# move search drone
-	if _search_drone:
-		var offset : Vector2 = _search_target_pos - Vector2(_search_drone.position.x, \
-																		_search_drone.position.z)
-		var dist = offset.length()
-		offset = offset.normalized() * clamp(dist, 0, _protocol.get_max_move_dist())
-		_search_drone.drone.state["position"] += Vector3(offset.x, 0, offset.y)
-	
 	
 	var exec := _drone_manager.simulate(drones, _protocol, _base_detection.position)
 	
@@ -219,6 +213,14 @@ func _simulation_step() -> void:
 		emit_signal("exec_fail", exec)
 		_run_simulation = false
 	else:
+		# move search drone
+		if _search_drone:
+			var offset : Vector2 = _search_target_pos - Vector2(_search_drone.position.x, \
+																			_search_drone.position.z)
+			var dist = offset.length()
+			offset = offset.normalized() * clamp(dist, 0, _protocol.get_max_move_dist())
+			_search_drone.drone.state["position"] += Vector3(offset.x, 0, offset.y)
+			
 		# send new state to gui
 		for d in drones:
 			emit_signal("update_drone_state", d.state)
@@ -256,12 +258,14 @@ func _simulation_step() -> void:
 						change = true
 						break
 		if change:
-			emit_signal("new_frame", states)
+			emit_signal("new_frame", states, _search_target_pos)
 					
 						
 	
 	_simulating = false # Release lock
 	
+func _flat_dist(p1 : Vector3, p2: Vector3) -> float:
+	return (p1.x-p2.x)*(p1.x-p2.x)+(p1.z-p2.z)*(p1.z-p2.z)
 				
 func _draw_links() -> void:
 	var drones3D = _drones.get_children()
@@ -272,12 +276,14 @@ func _draw_links() -> void:
 		if not d.drone.state["active"]:
 			continue
 			
-		var others : Array = d.get_neighbours().filter(func(x): return x.drone.state["active"] \
-		and x.drone.state["id"] < d.drone.state["id"] if _draw_directed_graph else true)
-			
-		var others_state = others.map(func(x): return x.drone.state)
+		var Dmax : float = 7 * _protocol.D
 		
-		if others_state.is_empty():
+		var others : Array = d.get_neighbours().filter(func(x): return x.drone.state["active"] \
+			and (_flat_dist(d.position, x.position) <= Dmax*Dmax + 0.1) \
+			and (x.drone.state["id"] < d.drone.state["id"] if _draw_directed_graph else true))
+		
+		
+		if others.is_empty():
 			continue
 		
 		for d2 in others:
@@ -296,9 +302,8 @@ func _draw_links() -> void:
 	
 	var others = _base_detection.get_overlapping_bodies().filter(func(x): return \
 																			x.drone.state["active"])
-	var others_state = others.map(func(x): return x.drone.state)
 	
-	if not others_state.is_empty():
+	if not others.is_empty():
 		for d in others:
 			points.append($Base.position)
 			points.append(d.position)
@@ -342,7 +347,7 @@ func _deploy_new_drone(pos : Vector3) -> void:
 	_drones.add_child(d)
 	if _next_id == 0:
 		var states : Array[Dictionary] = [d.drone.state.duplicate(true)]
-		emit_signal("new_frame", states)
+		emit_signal("new_frame", states, _search_target_pos)
 	emit_signal("add_drone", _next_id)
 	emit_signal("update_drone_state", state)
 	_next_id += 1

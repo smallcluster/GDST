@@ -47,7 +47,9 @@ func get_defaults_from_state(state : Dictionary) -> Dictionary:
 	}
 	
 func look(state : Dictionary, neighbours : Array[Drone]) -> Array:
-	var visible := neighbours.filter(func(x): return x.state["active"])
+	var Dmax := 7 * D
+	# + 0.1 thanks to float precision...
+	var visible := neighbours.filter(func(x): return x.state["active"] and _flat_dist_sq(x.state["position"], state["position"]) <= Dmax*Dmax + 0.1)
 	
 	return visible.map(func(x): return {
 		"id" : x.state["id"],
@@ -193,7 +195,7 @@ func compute(state : Dictionary, obs : Array, base_pos : Vector3) -> ExecReturn:
 		return ExecReturn.new(false, "", new_state)
 		
 	# Move to target if necessary
-	if _flat_dist_sq(pos, target_pos) > Dp*Dp:
+	if _flat_dist_sq(pos, target_pos) >= Dp*Dp:
 		var vd = (target_pos - pos)
 		new_state["position"] = pos + vd.normalized() * D
 		
@@ -202,7 +204,9 @@ func compute(state : Dictionary, obs : Array, base_pos : Vector3) -> ExecReturn:
 
 # Returns squared distance from two points in the XZ plane (Y is up)
 func _flat_dist_sq(p1, p2) -> float:
-	return (p1.x-p2.x)*(p1.x-p2.x)+(p1.z-p2.z)*(p1.z-p2.z)
+	var x : float = max(p1.x, p2.x) - min(p1.x, p2.x)
+	var y : float = max(p1.z, p2.z) - min(p1.z, p2.z)
+	return x*x + y*y
 	
 	
 # PARAMS FOR GODOT DRONE OBJECT
