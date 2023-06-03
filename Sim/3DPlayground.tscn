@@ -1,4 +1,4 @@
-[gd_scene load_steps=19 format=3 uid="uid://bu6x4bfchxkdv"]
+[gd_scene load_steps=20 format=3 uid="uid://crudtte4j4n8q"]
 
 [ext_resource type="Script" path="res://Sim/Scripts/3DPlayground.gd" id="1_o65i0"]
 [ext_resource type="Texture2D" uid="uid://depr3l4qm3sva" path="res://Sim/GUI/Icons/play.svg" id="2_b1oaf"]
@@ -10,6 +10,7 @@
 [ext_resource type="Texture2D" uid="uid://dmmawcdaunjq4" path="res://Sim/GUI/Icons/cube.svg" id="3_tee3l"]
 [ext_resource type="Texture2D" uid="uid://c4ftbgjy762m7" path="res://Sim/GUI/Icons/pause.svg" id="10_dds0u"]
 [ext_resource type="Texture2D" uid="uid://b5h7da0s2m7by" path="res://Sim/GUI/Icons/step.svg" id="11_cyna1"]
+[ext_resource type="PackedScene" uid="uid://f6hmu5370q7f" path="res://Sim/GUI/FailWindow.tscn" id="12_nvwb1"]
 [ext_resource type="Texture2D" uid="uid://btedf1m4d1fvh" path="res://Sim/GUI/Icons/stop.svg" id="12_qdey6"]
 
 [sub_resource type="Theme" id="Theme_m7sw8"]
@@ -404,9 +405,13 @@ placeholder_text = "auto"
 layout_mode = 2
 text = "Save as test"
 
+[node name="FailWindow" parent="." instance=ExtResource("12_nvwb1")]
+visible = false
+
 [connection signal="id_pressed" from="GUI/VBoxContainer/MenuBarPanel/MenuBar/Preferences" to="." method="_on_preferences_id_pressed"]
 [connection signal="id_pressed" from="GUI/VBoxContainer/MenuBarPanel/MenuBar/View" to="." method="_on_view_id_pressed"]
 [connection signal="add_drone" from="GUI/VBoxContainer/HSplitContainer/HSplitContainer/3DView/MainViewContainer/MainView" to="." method="_on_main_view_add_drone"]
+[connection signal="exec_fail" from="GUI/VBoxContainer/HSplitContainer/HSplitContainer/3DView/MainViewContainer/MainView" to="." method="_on_main_view_exec_fail"]
 [connection signal="perspective_cam" from="GUI/VBoxContainer/HSplitContainer/HSplitContainer/3DView/MainViewContainer/MainView" to="." method="_on_perspective_cam"]
 [connection signal="remove_drone" from="GUI/VBoxContainer/HSplitContainer/HSplitContainer/3DView/MainViewContainer/MainView" to="." method="_on_main_view_remove_drone"]
 [connection signal="update_drone_state" from="GUI/VBoxContainer/HSplitContainer/HSplitContainer/3DView/MainViewContainer/MainView" to="." method="_on_main_view_update_drone_state"]

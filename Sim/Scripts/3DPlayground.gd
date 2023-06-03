@@ -7,11 +7,14 @@ extends CanvasLayer
 @export var scene_tree : Tree
 @export var stats_panel : PanelContainer
 
+@onready var _fail_popup = $FailWindow
+
 var _play_simulation := true
 var _scene_tree_root : TreeItem
 var _drone_tree_index : Dictionary = {}
 var _max_height := 0
 var _top_down := false
+
 
 
 # -- GUI EVENTS --
@@ -114,9 +117,11 @@ func _on_kill_inactive_pressed():
 
 
 func _on_play_button_pressed():
-	_play_simulation = not _play_simulation
-	mainView.run_simulation(_play_simulation)
-	_update_play_button()
+	# No play if error !
+	if not _fail_popup.visible:
+		_play_simulation = not _play_simulation
+		mainView.run_simulation(_play_simulation)
+		_update_play_button()
 	
 func _update_play_button():
 	var button := $"GUI/VBoxContainer/HSplitContainer/HSplitContainer/3DView/PlaybackPanel/HBoxContainer/PlayButton"
@@ -128,9 +133,11 @@ func _update_play_button():
 
 
 func _on_step_button_pressed():
-	mainView.run_one_simulation_step()
-	_play_simulation = false
-	_update_play_button()
+	# No steping if error !
+	if not _fail_popup.visible:
+		mainView.run_one_simulation_step()
+		_play_simulation = false
+		_update_play_button()
 
 
 func _on_reset_button_pressed():
@@ -144,6 +151,8 @@ func _on_reset_button_pressed():
 	_scene_tree_root = scene_tree.create_item()
 	_scene_tree_root.set_text(0, "Drones")
 	_max_height = 0
+	
+	_fail_popup.visible = false
 	
 	
 func _on_main_view_add_drone(id):
@@ -248,3 +257,16 @@ func _on_view_switch_pressed():
 	else:
 		button.icon = load("res://Sim/GUI/Icons/cube.svg")
 		button.text = "3d"
+
+
+func _on_main_view_exec_fail(exec):
+	_play_simulation = false
+	_update_play_button()
+	
+	# create pup up !
+	_fail_popup.popup_centered()
+	_fail_popup.set_data(exec.msg, exec.state)
+	
+	
+	
+	

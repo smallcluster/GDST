@@ -7,6 +7,7 @@ var movement_time := 0.05
 signal add_drone(id)
 signal remove_drone(id)
 signal update_drone_state(state)
+signal exec_fail(exec)
 
 @onready var _drones = $Drones
 @onready var _lines : Lines3D = $Lines3D as Lines3D
@@ -177,20 +178,20 @@ func _simulation_step() -> void:
 	
 	
 	
-	_drone_manager.simulate(drones, _protocol, _base_detection.position)
+	var exec := _drone_manager.simulate(drones, _protocol, _base_detection.position)
 	
-	
-	
-	# send new state to gui
-	for d in drones:
-		emit_signal("update_drone_state", d.state)
-		
-	
-	
-	# Update visuals, move and wait for all movement to finish
-	var tweens = drones3D.map(func(x): return x.update(movement_time))
-	for t in tweens:
-		await t.finished
+	# Stop simulation on fail
+	if exec.fail:
+		emit_signal("exec_fail", exec)
+		_run_simulation = false
+	else:
+		# send new state to gui
+		for d in drones:
+			emit_signal("update_drone_state", d.state)
+		# Update visuals, move and wait for all movement to finish
+		var tweens = drones3D.map(func(x): return x.update(movement_time))
+		for t in tweens:
+			await t.finished
 		
 	
 	_simulating = false # Release lock
@@ -200,12 +201,13 @@ func _draw_links() -> void:
 	var drones3D = _drones.get_children()
 	var points : Array[Vector3] = []
 	
+	var arcs : Array = []
 	for d in drones3D:
 		if not d.drone.state["active"]:
 			continue
 			
 		var others : Array = d.get_neighbours().filter(func(x): return x.drone.state["active"] \
-													and x.drone.state["id"] < d.drone.state["id"])
+		and x.drone.state["id"] < d.drone.state["id"] if _draw_directed_graph else true)
 			
 		var others_state = others.map(func(x): return x.drone.state)
 		
@@ -213,8 +215,18 @@ func _draw_links() -> void:
 			continue
 		
 		for d2 in others:
-			points.append(d.position)
-			points.append(d2.position)
+			
+			var new_arc := true
+			for c in arcs:
+				if d in c and d2 in c:
+					new_arc = false
+					break
+			
+			if new_arc:
+				arcs.append([d, d2])
+				points.append(d.position)
+				points.append(d2.position)
+			
 	
 	var others = _base_detection.get_overlapping_bodies().filter(func(x): return \
 																			x.drone.state["active"])

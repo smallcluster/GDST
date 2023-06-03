@@ -4,6 +4,7 @@ signal perspective_cam
 signal add_drone(id)
 signal remove_drone(id)
 signal update_drone_state(state)
+signal exec_fail(exec)
 
 @onready var _drone_manager : DroneManager3D = $"3DDroneManager"
 @onready var _cam : Camera3D = $Camera3D
@@ -104,3 +105,7 @@ func _on_3d_drone_manager_remove_drone(id):
 
 func _on_3d_drone_manager_update_drone_state(state):
 	emit_signal("update_drone_state", state)
+
+
+func _on_3d_drone_manager_exec_fail(exec):
+	emit_signal("exec_fail", exec)

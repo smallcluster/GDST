@@ -56,9 +56,10 @@ func look(state : Dictionary, neighbours : Array[Drone]) -> Array:
 		"returning" : x.state["returning"]
 	})
 	
-func compute(state : Dictionary, obs : Array, base_pos : Vector3) -> Dictionary:
+func compute(state : Dictionary, obs : Array, base_pos : Vector3) -> ExecReturn:
 	
-	assert(state["position"].y >= base_pos.y-0.01, "lost connexion")
+	if state["position"].y < base_pos.y:
+		return ExecReturn.new(true, "CONNEXION LOST: drone below base", state)
 	
 	#***********************************************************************************************
 	#*                                       CONSTANTS                                             *
@@ -68,7 +69,7 @@ func compute(state : Dictionary, obs : Array, base_pos : Vector3) -> Dictionary:
 	#-----------------------------------------------------------------------------------------------
 	var Dmax := 7 * D
 	var Dc := 2 * D
-	var Dp := 7*D - D
+	var Dp := 7 * D - D
 	var depth := 2 * D
 	
 	# CURRENT DRONE'S OBSERVABLE STATE
@@ -85,7 +86,7 @@ func compute(state : Dictionary, obs : Array, base_pos : Vector3) -> Dictionary:
 	
 	# SKIP COMPUTE IF INACTIVE AND IGNORE BIZANTIN DRONE 0
 	if not state["active"] or id == 0:
-		return new_state
+		return ExecReturn.new(false, "", new_state)
 		
 	# Separate vision layer
 	var self_layer = obs.filter(func(x): return abs(x["position"].y - pos.y) < 0.01	)
@@ -97,7 +98,7 @@ func compute(state : Dictionary, obs : Array, base_pos : Vector3) -> Dictionary:
 	var collision_warn_filter = func(x): return x["id"] < id and _flat_dist_sq(x["position"], pos) < 4*D*D
 	
 	# Base retrival is a bit higher
-	var con_to_base = _flat_dist_sq(pos, base_pos) < Dmax*Dmax and  (pos.y - base_pos.y) <= depth
+	var con_to_base = _flat_dist_sq(pos, base_pos) < Dmax*Dmax and  (pos.y - base_pos.y) <= depth+0.1
 	
 	var returning = not self_layer.all(func(x): return not x["returning"]) or not \
 								(layer1+layer2).is_empty() or (layer1+layer2+self_layer).is_empty()
@@ -112,7 +113,7 @@ func compute(state : Dictionary, obs : Array, base_pos : Vector3) -> Dictionary:
 	
 	if self_layer_collision or not layer1.is_empty() or (returning and self_layer_warn_collision):
 		new_state["position"] = pos + Vector3.UP * D
-		return new_state
+		return ExecReturn.new(false, "", new_state)
 		
 
 	# RETURN TO BASE ?
@@ -122,17 +123,17 @@ func compute(state : Dictionary, obs : Array, base_pos : Vector3) -> Dictionary:
 			# Base capture drone
 			if(_flat_dist_sq(pos, base_pos) < 4*D*D):
 				new_state["KILL"] = true
-				return new_state
+				return ExecReturn.new(false, "", new_state)
 			# go towards base pos in current plane
 			var target_pos = base_pos
 			target_pos.y = pos.y
 			new_state["position"] = pos + (target_pos-pos).normalized() * D
-			return new_state
+			return ExecReturn.new(false, "", new_state)
 		
-		#GO DOWN ?
+		# GO DOWN ?
 		if (layer1+layer2).is_empty():
 			new_state["position"] = pos - Vector3.UP * D
-			return new_state
+			return ExecReturn.new(false, "", new_state)
 		
 		# look drones below and follow largest id	
 		obs = layer2 + layer1
@@ -141,11 +142,9 @@ func compute(state : Dictionary, obs : Array, base_pos : Vector3) -> Dictionary:
 		var target_pos = target["position"]
 		target_pos.y = pos.y
 		new_state["position"] = pos + (target_pos - pos).normalized() * D
-		return new_state
+		return ExecReturn.new(false, "", new_state)
 		
-	
-		
-	
+
 	#-----------------------------------------------------------------------------------------------	
 	# Try to return unecessary drone to base
 	#-----------------------------------------------------------------------------------------------
@@ -161,8 +160,13 @@ func compute(state : Dictionary, obs : Array, base_pos : Vector3) -> Dictionary:
 	
 	# Find Closest drone position (with light off priority)
 	var cp = candidates.map(func(x): return x["position"])
+	
+	if cp.is_empty():
+		return ExecReturn.new(true, "CONNEXION LOST: no neighbors", new_state)
+	
 	var target_pos = cp.reduce(func(acc, x): return acc if _flat_dist_sq(acc, pos) < \
 																_flat_dist_sq(x, pos) else x, cp[0])
+												
 	
 	# I am a leaf drone so i'm not usefull for maintaining connexion
 	if leaf_drone and not con_to_base:
@@ -177,7 +181,7 @@ func compute(state : Dictionary, obs : Array, base_pos : Vector3) -> Dictionary:
 			# towards it
 			new_state["position"] = pos + (target_pos-pos).normalized() * D
 			
-		return new_state
+		return ExecReturn.new(false, "", new_state)
 			
 	#-----------------------------------------------------------------------------------------------	
 	# BALABONSKI & AL.'S CONNEXION PROTOCOL
@@ -186,14 +190,14 @@ func compute(state : Dictionary, obs : Array, base_pos : Vector3) -> Dictionary:
 	# Stay if there is a danger
 	if _flat_dist_sq(pos, target_pos) <= Dc*Dc:
 		new_state["light"] = true
-		return new_state
+		return ExecReturn.new(false, "", new_state)
 		
 	# Move to target if necessary
 	if _flat_dist_sq(pos, target_pos) > Dp*Dp:
 		var vd = (target_pos - pos)
 		new_state["position"] = pos + vd.normalized() * D
 		
-	return new_state
+	return ExecReturn.new(false, "", new_state)
 	
 
 # Returns squared distance from two points in the XZ plane (Y is up)

@@ -1,0 +1,77 @@
+[gd_scene load_steps=3 format=3 uid="uid://f6hmu5370q7f"]
+
+[ext_resource type="Script" path="res://Sim/Scripts/GUI/FailWindow.gd" id="1_4rx7l"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_h74os"]
+bg_color = Color(1, 0, 0, 1)
+expand_margin_left = 8.0
+expand_margin_top = 32.0
+expand_margin_right = 8.0
+expand_margin_bottom = 8.0
+
+[node name="FailWindow" type="Window"]
+title = "FAILURE"
+position = Vector2i(8, 32)
+size = Vector2i(400, 400)
+wrap_controls = true
+always_on_top = true
+theme_override_colors/title_color = Color(1, 1, 1, 1)
+theme_override_styles/embedded_border = SubResource("StyleBoxFlat_h74os")
+script = ExtResource("1_4rx7l")
+
+[node name="Panel" type="Panel" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="TabContainer" type="TabContainer" parent="Panel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Message" type="TabBar" parent="Panel/TabContainer"]
+layout_mode = 2
+
+[node name="MsgBox" type="RichTextLabel" parent="Panel/TabContainer/Message"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = -8.0
+offset_bottom = -8.0
+grow_horizontal = 2
+grow_vertical = 2
+focus_mode = 2
+theme_override_font_sizes/normal_font_size = 24
+theme_override_font_sizes/bold_font_size = 24
+theme_override_font_sizes/italics_font_size = 24
+theme_override_font_sizes/bold_italics_font_size = 24
+theme_override_font_sizes/mono_font_size = 24
+text = "Error"
+selection_enabled = true
+
+[node name="Inspector" type="TabBar" parent="Panel/TabContainer"]
+visible = false
+layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Panel/TabContainer/Inspector"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Tree" type="Tree" parent="Panel/TabContainer/Inspector/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+columns = 2
+
+[connection signal="close_requested" from="." to="." method="_on_close_requested"]

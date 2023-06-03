@@ -3,8 +3,8 @@ class_name Protocol
 func look(state : Dictionary, neighbours : Array[Drone]) -> Array:
 	return []
 
-func compute(state : Dictionary, obs : Array, base_pos : Vector3) -> Dictionary:
-	return state
+func compute(state : Dictionary, obs : Array, base_pos : Vector3) -> ExecReturn:
+	return ExecReturn.new(false, "", state)
 
 func get_default_state() -> Dictionary:
 	return {
