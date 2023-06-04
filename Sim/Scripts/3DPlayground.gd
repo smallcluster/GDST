@@ -91,7 +91,10 @@ func list_tests():
 	_test_tree_root = test_tree.create_item()
 	_test_tree_root.set_text(0, "Tests")
 	
-	var img = Image.load_from_file("res://Sim/GUI/Icons/load_test.svg")
+	#var img = Image.load_from_file()
+	#img.resize(24, 24)
+	var tex_res = load("res://Sim/GUI/Icons/load_test.svg")
+	var img = tex_res.get_image()
 	img.resize(24, 24)
 	var tex = ImageTexture.create_from_image(img)
 	
