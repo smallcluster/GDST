@@ -2,7 +2,6 @@ extends CanvasLayer
 
 @export var mainView : SubViewport
 @export var fps_label : Label
-@export var max_height_label : Label
 @export var protocol_choice : MenuButton
 @export var graph_choice : MenuButton
 @export var scene_tree : Tree
@@ -291,15 +290,6 @@ func _register_drone(id):
 	_scene_tree_root.set_text(0, "Drones ("+str(_scene_tree_root.get_child_count())+")")
 	
 func _update_registered_drone(state):
-	
-	if _max_height < state["position"].y:
-		_max_height = state["position"].y
-		max_height_label.text = "Max height: "+str(_max_height)+"m"
-	if _max_height < state["position"].y:
-		_max_height = state["position"].y
-		max_height_label.text = "Max height: "+str(_max_height)+"m"
-		
-	
 	var item := _scene_tree_root.get_child(_drone_tree_index[state["id"]])
 
 	var labels := item.get_children().map(func(x): return x.get_text(0))

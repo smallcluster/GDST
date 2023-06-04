@@ -4,6 +4,7 @@
 [ext_resource type="Shader" path="res://Sim/GUI/SimPlayer/warning_bg.gdshader" id="2_ut6ow"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_y3u6t"]
+bg_color = Color(0.0392157, 0.0392157, 0.0392157, 1)
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_fau2m"]
 shader = ExtResource("2_ut6ow")
@@ -52,11 +53,9 @@ layout_mode = 0
 offset_left = -2.0
 offset_right = 2.0
 offset_bottom = 200.0
-color = Color(0.6, 0.6, 0.6, 1)
 
 [node name="Polygon2D" type="Polygon2D" parent="MainPanel/Control"]
 position = Vector2(-8, 0)
-color = Color(0.6, 0.6, 0.6, 1)
 polygon = PackedVector2Array(0, 0, 16, 0, 8, 8)
 
 [node name="ScrollContainer" type="ScrollContainer" parent="MainPanel"]

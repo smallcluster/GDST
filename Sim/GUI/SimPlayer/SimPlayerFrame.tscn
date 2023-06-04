@@ -3,6 +3,7 @@
 [ext_resource type="Script" path="res://Sim/Scripts/GUI/SimPlayerFrame.gd" id="1_25m66"]
 
 [sub_resource type="StyleBoxLine" id="StyleBoxLine_ue5k0"]
+color = Color(1, 1, 1, 1)
 grow_end = 0.0
 thickness = 2
 vertical = true
@@ -24,7 +25,7 @@ theme_override_styles/separator = SubResource("StyleBoxLine_ue5k0")
 custom_minimum_size = Vector2(32, 32)
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_font_sizes/font_size = 16
 text = "0
 "
@@ -44,6 +45,7 @@ custom_minimum_size = Vector2(16, 16)
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
+color = Color(0.0392157, 0.0392157, 0.0392157, 1)
 
 [node name="Space2" type="Control" parent="."]
 layout_mode = 2

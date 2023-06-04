@@ -30,7 +30,7 @@ func _process(delta):
 	if frames.is_empty():
 		return 
 		
-	if _mouse_playback and visible: 
+	if _mouse_playback and visible and $MainPanel.visible: 
 		for i in range(frames.size()):
 			var f = frames[i]
 			var mouse = get_local_mouse_position()
@@ -46,13 +46,20 @@ func _process(delta):
 	
 	# request simulation reload
 	if _prev_selected_frame != _selected_frame:
+		frames[_prev_selected_frame].selected = false
 		_prev_selected_frame = _selected_frame
 		var f = frames[_selected_frame]
+		
 		emit_signal("load_frame", f.states, f.target)
+	
+	if $MainPanel.visible:	
+		frames[_selected_frame].selected = true
+		
 		
 func add_frame(states : Array[Dictionary], target : Vector2) -> void:
 	var f = create_frame(_next_n, states, target)
 	_frames_container.add_child(f)
+	_frames_container.get_children()[_prev_selected_frame].selected = false
 	_selected_frame = _next_n
 	_prev_selected_frame = _next_n
 	f.connect("selected", func(x): _selected_frame = x)
@@ -68,6 +75,9 @@ func create_frame(n : int, states : Array[Dictionary], target : Vector2):
 	return frame
 	
 func _input(event):
+	if not $MainPanel.visible:
+		return
+		
 	if event is InputEventMouseButton:
 		if event.button_index == MOUSE_BUTTON_LEFT :
 			if event.pressed:

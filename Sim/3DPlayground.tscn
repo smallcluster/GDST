@@ -57,11 +57,10 @@ expand_margin_bottom = 2.0
 shader = ExtResource("2_hqret")
 shader_parameter/opacity = 0.25
 
-[node name="3DPlayground" type="CanvasLayer" node_paths=PackedStringArray("mainView", "fps_label", "max_height_label", "protocol_choice", "graph_choice", "scene_tree", "stats_panel", "play_button", "view_switch", "vision_switch", "sim_player", "test_tree", "test_creation_name")]
+[node name="3DPlayground" type="CanvasLayer" node_paths=PackedStringArray("mainView", "fps_label", "protocol_choice", "graph_choice", "scene_tree", "stats_panel", "play_button", "view_switch", "vision_switch", "sim_player", "test_tree", "test_creation_name")]
 script = ExtResource("1_o65i0")
 mainView = NodePath("GUI/VBoxContainer/HSplitContainer/HSplitContainer/VSplitContainer/3DView/MainViewContainer/MainView")
 fps_label = NodePath("GUI/VBoxContainer/HSplitContainer/HSplitContainer/VSplitContainer/3DView/StatsPanel/VBoxContainer/FpsLabel")
-max_height_label = NodePath("GUI/VBoxContainer/HSplitContainer/HSplitContainer/VSplitContainer/3DView/StatsPanel/VBoxContainer/MaxHeightLabel")
 protocol_choice = NodePath("GUI/VBoxContainer/HSplitContainer/OptionsPanel/VBoxContainer/ProtocolChoice")
 graph_choice = NodePath("GUI/VBoxContainer/HSplitContainer/OptionsPanel/VBoxContainer/GraphChoice")
 scene_tree = NodePath("GUI/VBoxContainer/HSplitContainer/HSplitContainer/Panel/Inspector/VBoxContainer/Tree")
@@ -486,11 +485,6 @@ layout_mode = 2
 layout_mode = 2
 text = "60 FPS"
 horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="MaxHeightLabel" type="Label" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer/VSplitContainer/3DView/StatsPanel/VBoxContainer"]
-layout_mode = 2
-text = "Max height: 0"
 vertical_alignment = 1
 
 [node name="PlaybackPanel" type="PanelContainer" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer/VSplitContainer/3DView"]
