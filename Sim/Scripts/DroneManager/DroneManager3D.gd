@@ -15,6 +15,8 @@ signal new_frame(states, target)
 @onready var _base_detection : Area3D = $Base/Detection
 @onready var _target_vis = $SearchTeam
 
+
+
 var _request_reset := false
 var _request_loading_frame : Array[Dictionary] = []
 var _hide_inactive := false

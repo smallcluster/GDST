@@ -9,10 +9,13 @@ extends CanvasLayer
 @export var stats_panel : PanelContainer
 @export var play_button : Button
 @export var view_switch : Button
+@export var vision_switch : Button
 @export var sim_player : SimPlayer
 @export var test_tree : Tree
+@export var test_creation_name : LineEdit
 
 @onready var _fail_popup = $FailWindow
+@onready var _tools = get_node("/root/Tools")
 
 var _play_simulation := true
 var _scene_tree_root : TreeItem
@@ -20,6 +23,7 @@ var _test_tree_root : TreeItem
 var _drone_tree_index : Dictionary = {}
 var _max_height := 0
 var _top_down := false
+var _show_vision := false
 
 
 
@@ -209,13 +213,6 @@ func _on_preferences_id_pressed(id):
 		else:
 			mainView.msaa_3d = Viewport.MSAA_DISABLED
 			mainView.screen_space_aa = Viewport.SCREEN_SPACE_AA_DISABLED
-	# Statistics
-	elif id == 3:
-		stats_panel.visible = checked
-	elif id == 4:
-		$GUI/VBoxContainer/HSplitContainer/HSplitContainer/Panel.visible = checked
-	elif id == 5:
-		sim_player.visible = checked
 
 func _on_view_id_pressed(id):
 	var items : PopupMenu = $GUI/VBoxContainer/MenuBarPanel/MenuBar/View
@@ -224,16 +221,16 @@ func _on_view_id_pressed(id):
 	if items.is_item_checkable(index):
 		checked = not items.is_item_checked(index)
 		items.set_item_checked(index, checked)
-	
-	# Reset view
-	if id == 1:
-		mainView.reset_view()
-	# drone vision
-	elif id == 4:
-		mainView.show_vision(checked)
-	# hide inactive drones
-	elif id == 5 :
+		
+	if id == 1 :
 		mainView.hide_inactive_drones(checked)
+	# Statistics
+	elif id == 5:
+		stats_panel.visible = checked
+	elif id == 3:
+		$GUI/VBoxContainer/HSplitContainer/HSplitContainer/Panel.visible = checked
+	elif id == 4:
+		sim_player.visible = checked
 
 func _on_kill_inactive_pressed():
 	mainView.kill_inactive()
@@ -453,6 +450,7 @@ func _on_dist_arg_changed(new_text):
 		
 
 func _on_save_test_pressed():
+	var pos_format_check : CheckBox = $GUI/VBoxContainer/HSplitContainer/HSplitContainer/Panel/Tests/VBoxContainer/TestSavingContainer/RelativePos
 	var frame = sim_player.get_current_frame()
 	var t = frame.target
 	var dict = {
@@ -468,14 +466,17 @@ func _on_save_test_pressed():
 				continue
 			if k == "position": # format position
 				var p = s[k] - mainView.get_base_pos()
-				
-				fs[k] = [p.x, p.y, p.z]
+			
+				if pos_format_check.button_pressed:
+					fs[k] = ["%f * D" % (p.x / 0.3), "%f * D" % (p.y / 0.3), "%f * D" % (p.z / 0.3)]
+				else:
+					fs[k] = [p.x, p.y, p.z]
 			else:
 				fs[k] = s[k]
 				
 		dict["states"].append(fs)
-	var name_edit = $GUI/VBoxContainer/HSplitContainer/OptionsPanel/VBoxContainer/TestName
-	var txt = name_edit.text if name_edit.text != "" else name_edit.placeholder_text
+
+	var txt = test_creation_name.text if test_creation_name.text != "" else test_creation_name.placeholder_text
 	
 	var file = FileAccess.open(_get_tests_dir_path()+"/"+txt+".json", FileAccess.WRITE)
 	if file:
@@ -484,3 +485,51 @@ func _on_save_test_pressed():
 		list_tests()
 	
 	
+func _on_vison_switch_pressed():
+	_show_vision = not _show_vision
+	mainView.show_vision(_show_vision)
+	if _show_vision:
+		vision_switch.icon = load("res://Sim/GUI/Icons/eye-on.svg")
+	else:
+		vision_switch.icon = load("res://Sim/GUI/Icons/eye-off.svg")
+
+func _on_reset_view_pressed():
+	mainView.reset_view()
+	
+
+func _set_tool(choice):
+	_tools.current = choice
+	
+	var tool_text : Label = $"GUI/VBoxContainer/HSplitContainer/HSplitContainer/VSplitContainer/3DView/ToolsPanel/VBoxContainer/SelectedToolLabel"
+	
+	var tool_target_button : Button = $"GUI/VBoxContainer/HSplitContainer/HSplitContainer/VSplitContainer/3DView/ToolsPanel/VBoxContainer/HBoxContainer/MoveTarget"
+	var tool_pan_button : Button = $"GUI/VBoxContainer/HSplitContainer/HSplitContainer/VSplitContainer/3DView/ToolsPanel/VBoxContainer/HBoxContainer/PanView"
+	var tool_zoom_button : Button = $"GUI/VBoxContainer/HSplitContainer/HSplitContainer/VSplitContainer/3DView/ToolsPanel/VBoxContainer/HBoxContainer/ZoomView"
+	var tool_rotate_button : Button = $"GUI/VBoxContainer/HSplitContainer/HSplitContainer/VSplitContainer/3DView/ToolsPanel/VBoxContainer/HBoxContainer/RotateView"
+	
+	tool_target_button.set_pressed_no_signal(false)
+	tool_pan_button.set_pressed_no_signal(false)
+	tool_zoom_button.set_pressed_no_signal(false)
+	tool_rotate_button.set_pressed_no_signal(false)
+	
+	if choice == _tools.ToolChoice.MOVE_TARGET:
+		tool_target_button.set_pressed_no_signal(true)
+		tool_text.text = "Move search team"
+	elif choice == _tools.ToolChoice.PAN_VIEW:
+		tool_pan_button.set_pressed_no_signal(true)
+		tool_text.text = "Pan view"
+	elif choice == _tools.ToolChoice.ZOOM_VIEW:
+		tool_zoom_button.set_pressed_no_signal(true)
+		tool_text.text = "Zoom view"
+	elif choice == _tools.ToolChoice.ROTATE_VIEW:
+		tool_rotate_button.set_pressed_no_signal(true)
+		tool_text.text = "Rotate view"
+
+func _on_move_target_pressed():
+	_set_tool(_tools.ToolChoice.MOVE_TARGET)
+func _on_pan_view_pressed():
+	_set_tool(_tools.ToolChoice.PAN_VIEW)
+func _on_zoom_view_pressed():
+	_set_tool(_tools.ToolChoice.ZOOM_VIEW)
+func _on_rotate_view_pressed():
+	_set_tool(_tools.ToolChoice.ROTATE_VIEW)

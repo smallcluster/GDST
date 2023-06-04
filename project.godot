@@ -17,6 +17,10 @@ boot_splash/show_image=false
 config/icon="res://icon.svg"
 config/windows_native_icon="res://icon.ico"
 
+[autoload]
+
+Tools="*res://Sim/Scripts/Globals/selected_tool.gd"
+
 [display]
 
 window/size/viewport_width=1920

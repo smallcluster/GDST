@@ -11,6 +11,8 @@ signal new_frame(states, target)
 @onready var _cam : Camera3D = $Camera3D
 @onready var _dir_light : DirectionalLight3D = $DirectionalLight3D
 @onready var _floor = $Floor
+@onready var _tools = get_node("/root/Tools")
+
 var _clicked := false
 
 func get_base_pos() -> Vector3:
@@ -67,7 +69,7 @@ func _mouse_to_world(position2D : Vector2) -> Vector3:
 	
 func _input(event):
 	if event is InputEventMouseButton:
-		if event.button_index == MOUSE_BUTTON_LEFT:
+		if event.button_index == MOUSE_BUTTON_LEFT and _tools.current == Tools.ToolChoice.MOVE_TARGET:
 			_clicked = event.pressed
 			if event.pressed:
 				_move_search_target(event.position)
@@ -76,7 +78,7 @@ func _input(event):
 			if pos:
 				_drone_manager.deploy_ground_drone_at(pos)
 				
-	if event is InputEventMouseMotion  and _clicked:
+	if event is InputEventMouseMotion and _clicked and _tools.current == Tools.ToolChoice.MOVE_TARGET:
 		_move_search_target(event.position)
 		
 func load_frame(states, target):

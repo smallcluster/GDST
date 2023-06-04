@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools -->
+
+<svg
+   fill="#000000"
+   width="800px"
+   height="800px"
+   viewBox="0 0 24 24"
+   version="1.1"
+   id="svg4"
+   sodipodi:docname="rotate.svg"
+   inkscape:version="1.1.1 (3bf5ae0d25, 2021-09-20)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs8" />
+  <sodipodi:namedview
+     id="namedview6"
+     pagecolor="#ffffff"
+     bordercolor="#999999"
+     borderopacity="1"
+     inkscape:pageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     showgrid="false"
+     inkscape:zoom="0.449375"
+     inkscape:cx="405.00695"
+     inkscape:cy="-133.51878"
+     inkscape:window-width="1620"
+     inkscape:window-height="2774"
+     inkscape:window-x="5749"
+     inkscape:window-y="-5"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg4" />
+  <path
+     d="m 12,5.0382003 c -6.6132684,0 -11.60222531,2.4944784 -11.60222531,5.8011127 0,2.842545 3.70110991,5.081775 8.94531571,5.661886 L 8.8557969,16.97689 a 1.1602225,1.1602225 0 0 0 0,1.647516 1.1602225,1.1602225 0 0 0 1.6475161,0 l 2.320445,-2.320445 a 1.1602225,1.1602225 0 0 0 0.243647,-0.382873 1.1602225,1.1602225 0 0 0 0,-0.881769 1.1602225,1.1602225 0 0 0 -0.243647,-0.382874 L 10.503313,12.336 A 1.1649698,1.1649698 0 0 0 8.8557969,13.983516 L 8.9950236,14.11114 C 5.0386648,13.554234 2.7182198,11.999535 2.7182198,10.839313 2.7182198,9.4238415 6.338114,7.3586454 12,7.3586454 c 5.661886,0 9.28178,2.0651961 9.28178,3.4806676 0,0.962985 -1.682322,2.320445 -4.884537,3.016579 a 1.1602225,1.1602225 0 0 0 -0.916575,1.380664 1.1602225,1.1602225 0 0 0 1.380664,0.893372 C 21.096145,15.20175 23.602225,13.229371 23.602225,10.839313 23.602225,7.5326787 18.613268,5.0382003 12,5.0382003 Z"
+     id="path2"
+     style="stroke-width:1.16022;fill:#ffffff;fill-opacity:1" />
+</svg>
