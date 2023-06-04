@@ -1,10 +1,10 @@
 extends Control
 class_name SimPlayer
 
-@onready var _pointer := $bg/Control
-@onready var _frames_container := $bg/ScrollContainer/VisibleFrames
-@onready var _scroll_container := $bg/ScrollContainer
-@onready var _pointer_line := $bg/Control/ColorRect2
+@onready var _pointer := $MainPanel/Control
+@onready var _frames_container := $MainPanel/ScrollContainer/VisibleFrames
+@onready var _scroll_container := $MainPanel/ScrollContainer
+@onready var _pointer_line := $MainPanel/Control/ColorRect2
 @onready var _frame_scene = preload("res://Sim/GUI/SimPlayer/SimPlayerFrame.tscn")
 
 signal load_frame(states, target)
@@ -13,11 +13,15 @@ var _next_n := 0
 var _frame_added := false
 var _selected_frame := 0
 var _mouse_playback := false
-
 var _prev_selected_frame := 0
 
+func set_updating(val : bool) -> void:
+	$MainPanel.visible = not val
+	$WaningPanel.visible = val
+	
 func _process(delta):
-	if _frame_added:
+	
+	if _frame_added and $MainPanel.visible:
 		_scroll_container.scroll_horizontal = _scroll_container.get_h_scroll_bar().max_value
 		_frame_added = false
 	
@@ -53,6 +57,7 @@ func add_frame(states : Array[Dictionary], target : Vector2) -> void:
 	_prev_selected_frame = _next_n
 	f.connect("selected", func(x): _selected_frame = x)
 	_frame_added = true
+	$WaningPanel/TopBar2/Label.text = "Time line is updating (frame: "+str(_next_n)+")"
 	_next_n += 1
 
 func create_frame(n : int, states : Array[Dictionary], target : Vector2):

@@ -599,6 +599,7 @@ visible = false
 [connection signal="add_drone" from="GUI/VBoxContainer/HSplitContainer/HSplitContainer/VSplitContainer/3DView/MainViewContainer/MainView" to="." method="_on_main_view_add_drone"]
 [connection signal="exec_fail" from="GUI/VBoxContainer/HSplitContainer/HSplitContainer/VSplitContainer/3DView/MainViewContainer/MainView" to="." method="_on_main_view_exec_fail"]
 [connection signal="new_frame" from="GUI/VBoxContainer/HSplitContainer/HSplitContainer/VSplitContainer/3DView/MainViewContainer/MainView" to="." method="_on_main_view_new_frame"]
+[connection signal="no_op" from="GUI/VBoxContainer/HSplitContainer/HSplitContainer/VSplitContainer/3DView/MainViewContainer/MainView" to="." method="_on_main_view_no_op"]
 [connection signal="perspective_cam" from="GUI/VBoxContainer/HSplitContainer/HSplitContainer/VSplitContainer/3DView/MainViewContainer/MainView" to="." method="_on_perspective_cam"]
 [connection signal="remove_drone" from="GUI/VBoxContainer/HSplitContainer/HSplitContainer/VSplitContainer/3DView/MainViewContainer/MainView" to="." method="_on_main_view_remove_drone"]
 [connection signal="update_drone_state" from="GUI/VBoxContainer/HSplitContainer/HSplitContainer/VSplitContainer/3DView/MainViewContainer/MainView" to="." method="_on_main_view_update_drone_state"]

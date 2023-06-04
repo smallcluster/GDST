@@ -9,6 +9,7 @@ signal remove_drone(id)
 signal update_drone_state(state)
 signal exec_fail(exec)
 signal new_frame(states, target)
+signal no_op
 
 @onready var _drones = $Drones
 @onready var _lines : Lines3D = $Lines3D as Lines3D
@@ -261,6 +262,8 @@ func _simulation_step() -> void:
 						break
 		if change:
 			emit_signal("new_frame", states, _search_target_pos)
+		else:
+			emit_signal("no_op")
 					
 						
 	

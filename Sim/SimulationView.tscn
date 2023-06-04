@@ -127,5 +127,6 @@ mesh = SubResource("SphereMesh_3i8wc")
 [connection signal="add_drone" from="3DDroneManager" to="." method="_on_3d_drone_manager_add_drone"]
 [connection signal="exec_fail" from="3DDroneManager" to="." method="_on_3d_drone_manager_exec_fail"]
 [connection signal="new_frame" from="3DDroneManager" to="." method="_on_3d_drone_manager_new_frame"]
+[connection signal="no_op" from="3DDroneManager" to="." method="_on_3d_drone_manager_no_op"]
 [connection signal="remove_drone" from="3DDroneManager" to="." method="_on_3d_drone_manager_remove_drone"]
 [connection signal="update_drone_state" from="3DDroneManager" to="." method="_on_3d_drone_manager_update_drone_state"]

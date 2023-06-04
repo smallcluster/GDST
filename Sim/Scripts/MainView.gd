@@ -6,6 +6,7 @@ signal remove_drone(id)
 signal update_drone_state(state)
 signal exec_fail(exec)
 signal new_frame(states, target)
+signal no_op
 
 @onready var _drone_manager : DroneManager3D = $"3DDroneManager"
 @onready var _cam : Camera3D = $Camera3D
@@ -124,3 +125,7 @@ func _on_3d_drone_manager_exec_fail(exec):
 
 func _on_3d_drone_manager_new_frame(states, target):
 	emit_signal("new_frame", states, target)
+
+
+func _on_3d_drone_manager_no_op():
+	emit_signal("no_op")

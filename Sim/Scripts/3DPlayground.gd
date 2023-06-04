@@ -81,11 +81,12 @@ func _ready():
 		load_test(_get_tests_dir_path()+"/"+item.get_text(0)+".json")
 	)
 	
+	sim_player.set_updating(false)
+	
 	
 	
 func list_tests():
 	# List test files
-	test_tree.disconnect("button_clicked", func(item, column, id, mouse_button_index):pass)
 	test_tree.clear()
 	
 	_test_tree_root = test_tree.create_item()
@@ -246,8 +247,10 @@ func _on_play_button_pressed():
 func _update_play_button():
 	if _play_simulation:
 		play_button.icon = load("res://Sim/GUI/Icons/pause.svg")
+		sim_player.set_updating(true)
 	else:
 		play_button.icon = load("res://Sim/GUI/Icons/play.svg")
+		sim_player.set_updating(false)
 	
 
 
@@ -398,6 +401,8 @@ func _on_main_view_exec_fail(exec):
 	
 	
 func _on_main_view_new_frame(states, target):
+	if _play_simulation:
+		sim_player.set_updating(true)
 	sim_player.add_frame(states, target)
 
 
@@ -533,3 +538,7 @@ func _on_zoom_view_pressed():
 	_set_tool(_tools.ToolChoice.ZOOM_VIEW)
 func _on_rotate_view_pressed():
 	_set_tool(_tools.ToolChoice.ROTATE_VIEW)
+
+
+func _on_main_view_no_op():
+	sim_player.set_updating(false)
