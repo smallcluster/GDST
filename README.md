@@ -2,6 +2,8 @@
 
 A Tool made with Godot 4.0 to illustrate an FSYNC protocol for a swarm of oblivious robots.
 
+# <img src="screenshot.jpg"/>
+
 # Setup
 
 Import project with Godot 4.0 (standard): https://godotengine.org/
