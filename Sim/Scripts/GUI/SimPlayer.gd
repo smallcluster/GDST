@@ -62,7 +62,6 @@ func add_frame(states : Array[Dictionary], target : Vector2) -> void:
 	_frames_container.get_children()[_prev_selected_frame].selected = false
 	_selected_frame = _next_n
 	_prev_selected_frame = _next_n
-	f.connect("selected", func(x): _selected_frame = x)
 	_frame_added = true
 	$WaningPanel/TopBar2/Label.text = "Time line is updating (frame: "+str(_next_n)+")"
 	_next_n += 1
