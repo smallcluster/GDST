@@ -281,12 +281,16 @@ func _draw_links() -> void:
 		if not d.drone.state["active"]:
 			continue
 			
-		var Dmax : float = 7 * _protocol.D
+		var others : Array = d.get_neighbours().filter(func(x): return x.drone.state["active"])
 		
-		var others : Array = d.get_neighbours().filter(func(x): return x.drone.state["active"] \
-			and (_flat_dist(d.position, x.position) <= Dmax*Dmax + 0.1) \
-			and (x.drone.state["id"] < d.drone.state["id"] if _draw_directed_graph else true))
+		if abs(d.position.y - _base_detection.position.y) >= _protocol.D-0.01 :
+			others = others.filter(func(x): return _flat_dist(d.position, x.position) <= 8*8*_protocol.D*_protocol.D + 0.2)
+		else:
+			others = others.filter(func(x): return _flat_dist(d.position, x.position) <= 7*7*_protocol.D*_protocol.D + 0.2)
 		
+		if _draw_directed_graph:
+			others = others.filter(func(x): return x.drone.state["id"] < d.drone.state["id"] )
+			
 		
 		if others.is_empty():
 			continue
