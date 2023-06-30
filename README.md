@@ -2,7 +2,12 @@
 
 *Godot Drone Simulation Thingy (GDST)* is a small simulator made with Godot 4.0 for a swarm of limited autonomous mobiles robots following the **FSYNC** model created by Suzuki & Yamashita (1999).
 
-<div style="text-align:center;"><br><img src="screenshot.jpg" width="75%"/><br><spam style="font-style: oblique;">Simulating base retrieval</spam></div>
+
+<p align="center">
+<img src="screenshot.jpg" width="75%"/><br>
+Simulating base retrieval
+</p>
+
 
 ## Why ?
 
