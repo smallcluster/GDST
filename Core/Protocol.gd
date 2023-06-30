@@ -36,6 +36,7 @@ func migrate_state(state : Dictionary) -> Dictionary:
 func get_vision_shape() -> CollisionShape3D:
 	var collision = CollisionShape3D.new()
 	collision.shape = SphereShape3D.new()
+	collision.shape.radius = 7*0.3
 	return collision
 	
 func get_vision_meshes() -> Array[MeshInstance3D]:

@@ -284,7 +284,7 @@ grow_vertical = 2
 stretch = true
 
 [node name="MainView" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer/VSplitContainer/3DView/MainViewContainer" instance=ExtResource("2_ctlmb")]
-size = Vector2i(2, 2)
+size = Vector2i(1378, 900)
 
 [node name="GizmoPanel" type="PanelContainer" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer/VSplitContainer/3DView"]
 layout_mode = 1
