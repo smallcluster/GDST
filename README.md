@@ -22,4 +22,4 @@ Import project with Godot 4.0 (standard): https://godotengine.org/
 
 # Wiki
 
-A complete manual will be available [here](https://github.com/smallcluster/GDST/wiki)
+Documentation is available [here](https://github.com/smallcluster/GDST/wiki)
