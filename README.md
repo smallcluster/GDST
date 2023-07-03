@@ -11,7 +11,7 @@ Simulating base retrieval
 
 ## Why ?
 
-to help develop a protocol that solves the "Lifeline" problem where a search team needs to communicate with their base in a hazardous environment.
+To help develop a protocol that solves the "Lifeline" problem where a search team needs to communicate with their base in a hazardous environment.
 
 ⚠️ This tool isn't a general-purpose simulator for swarms of autonomous mobiles robots. It focuses only on the "Lifeline" problem.
 
