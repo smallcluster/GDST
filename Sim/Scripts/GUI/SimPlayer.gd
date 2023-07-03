@@ -63,7 +63,7 @@ func add_frame(states : Array[Dictionary], target : Vector2) -> void:
 	_selected_frame = _next_n
 	_prev_selected_frame = _next_n
 	_frame_added = true
-	$WaningPanel/TopBar2/Label.text = "Time line is updating (frame: "+str(_next_n)+")"
+	$WaningPanel/TopBar2/Label.text = "Timeline is updating (frame: "+str(_next_n)+")"
 	_next_n += 1
 
 func create_frame(n : int, states : Array[Dictionary], target : Vector2):

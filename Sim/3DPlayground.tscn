@@ -125,7 +125,7 @@ item_3/text = "Inspector/Tests"
 item_3/checkable = 1
 item_3/checked = true
 item_3/id = 3
-item_4/text = "Time Line"
+item_4/text = "Timeline"
 item_4/checkable = 1
 item_4/checked = true
 item_4/id = 4
@@ -163,38 +163,6 @@ grow_vertical = 2
 layout_mode = 2
 size_flags_vertical = 3
 columns = 2
-
-[node name="HBoxContainer" type="HBoxContainer" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer/Panel/Inspector/VBoxContainer"]
-layout_mode = 2
-
-[node name="Label" type="Label" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer/Panel/Inspector/VBoxContainer/HBoxContainer"]
-layout_mode = 2
-text = "d("
-
-[node name="LineEdit" type="LineEdit" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer/Panel/Inspector/VBoxContainer/HBoxContainer"]
-layout_mode = 2
-
-[node name="Label3" type="Label" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer/Panel/Inspector/VBoxContainer/HBoxContainer"]
-layout_mode = 2
-text = ","
-
-[node name="LineEdit2" type="LineEdit" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer/Panel/Inspector/VBoxContainer/HBoxContainer"]
-layout_mode = 2
-
-[node name="Label4" type="Label" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer/Panel/Inspector/VBoxContainer/HBoxContainer"]
-layout_mode = 2
-text = ")"
-
-[node name="HBoxContainer2" type="HBoxContainer" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer/Panel/Inspector/VBoxContainer"]
-layout_mode = 2
-
-[node name="Label2" type="Label" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer/Panel/Inspector/VBoxContainer/HBoxContainer2"]
-layout_mode = 2
-text = "="
-
-[node name="Label4" type="Label" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer/Panel/Inspector/VBoxContainer/HBoxContainer2"]
-layout_mode = 2
-text = "null"
 
 [node name="Tests" type="TabBar" parent="GUI/VBoxContainer/HSplitContainer/HSplitContainer/Panel"]
 visible = false
@@ -582,10 +550,6 @@ visible = false
 
 [connection signal="id_pressed" from="GUI/VBoxContainer/MenuBarPanel/MenuBar/Preferences" to="." method="_on_preferences_id_pressed"]
 [connection signal="id_pressed" from="GUI/VBoxContainer/MenuBarPanel/MenuBar/View" to="." method="_on_view_id_pressed"]
-[connection signal="text_changed" from="GUI/VBoxContainer/HSplitContainer/HSplitContainer/Panel/Inspector/VBoxContainer/HBoxContainer/LineEdit" to="." method="_on_dist_arg_changed"]
-[connection signal="text_submitted" from="GUI/VBoxContainer/HSplitContainer/HSplitContainer/Panel/Inspector/VBoxContainer/HBoxContainer/LineEdit" to="." method="_on_dist_arg_changed"]
-[connection signal="text_changed" from="GUI/VBoxContainer/HSplitContainer/HSplitContainer/Panel/Inspector/VBoxContainer/HBoxContainer/LineEdit2" to="." method="_on_dist_arg_changed"]
-[connection signal="text_submitted" from="GUI/VBoxContainer/HSplitContainer/HSplitContainer/Panel/Inspector/VBoxContainer/HBoxContainer/LineEdit2" to="." method="_on_dist_arg_changed"]
 [connection signal="text_changed" from="GUI/VBoxContainer/HSplitContainer/HSplitContainer/Panel/Tests/VBoxContainer/HBoxContainer/TestFolderPath" to="." method="_on_test_folder_path_text_changed"]
 [connection signal="text_submitted" from="GUI/VBoxContainer/HSplitContainer/HSplitContainer/Panel/Tests/VBoxContainer/HBoxContainer/TestFolderPath" to="." method="_on_test_folder_path_text_submitted"]
 [connection signal="pressed" from="GUI/VBoxContainer/HSplitContainer/HSplitContainer/Panel/Tests/VBoxContainer/HBoxContainer/RefreshTests" to="." method="_on_refresh_tests_pressed"]

@@ -413,40 +413,6 @@ func _on_test_folder_path_text_changed(new_text):
 func _on_test_folder_path_text_submitted(new_text):
 	list_tests()
 
-
-func _on_dist_arg_changed(new_text):
-	var in1 = $GUI/VBoxContainer/HSplitContainer/HSplitContainer/Panel/Inspector/VBoxContainer/HBoxContainer/LineEdit 
-	var in2 = $GUI/VBoxContainer/HSplitContainer/HSplitContainer/Panel/Inspector/VBoxContainer/HBoxContainer/LineEdit2
-	var out = $GUI/VBoxContainer/HSplitContainer/HSplitContainer/Panel/Inspector/VBoxContainer/HBoxContainer2/Label4
-	
-	if in1.text.is_valid_int() and in2.text.is_valid_int():
-		var id1 = in1.text.to_int()
-		var id2 = in2.text.to_int()
-		if id1 in _drone_tree_index and id2 in _drone_tree_index:
-			var item1 := _scene_tree_root.get_child(_drone_tree_index[id1])
-			var item2 := _scene_tree_root.get_child(_drone_tree_index[id2])
-			
-			var p1 = []
-			for c in item1.get_children():
-				if c.get_text(0) == "position":
-					for x in c.get_children():
-						p1.append(x.get_text(1).to_float())
-					break
-			var p2 = []
-			for c in item2.get_children():
-				if c.get_text(0) == "position":
-					for x in c.get_children():
-						p2.append(x.get_text(1).to_float())
-					break
-			var d = (p1[0]-p2[0])*(p1[0]-p2[0]) + (p1[2]-p2[2])*(p1[2]-p2[2])
-			out.text = str(d)					
-					
-		else:
-			out.text = "null"
-	else:
-		out.text = "null"
-		
-
 func _on_save_test_pressed():
 	var pos_format_check : CheckBox = $GUI/VBoxContainer/HSplitContainer/HSplitContainer/Panel/Tests/VBoxContainer/TestSavingContainer/RelativePos
 	var frame = sim_player.get_current_frame()
