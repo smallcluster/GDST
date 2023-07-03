@@ -61,7 +61,7 @@ func _move_search_target(position2D) -> void:
 func set_search_target(target : Vector2) -> void:
 	_drone_manager.set_search_target(target)
 		
-func _mouse_to_world(position2D : Vector2) -> Vector3:
+func _mouse_to_world(position2D : Vector2):
 	var dropPlane  = Plane(Vector3(0, 1, 0), 0)
 	var position3D = dropPlane.intersects_ray(
 		_cam.project_ray_origin(position2D),
